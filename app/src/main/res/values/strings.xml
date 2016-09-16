@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GPMDPController</string>
+    <string name="controller_ip_edittext_hint">Enter your GPMDP host IP here</string>
+    <string name="controller_connect_button_text">Connect</string>
+</resources>
