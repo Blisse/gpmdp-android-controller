@@ -10,6 +10,8 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSettings;
 import ai.victorl.gpmdpcontroller.data.storage.GpmdpSharedPreferences;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
+import ai.victorl.gpmdpcontroller.ui.views.DefaultViewContainer;
+import ai.victorl.gpmdpcontroller.ui.views.ViewContainer;
 import dagger.Module;
 import dagger.Provides;
 
@@ -30,6 +32,11 @@ public class ApplicationModule {
     @ApplicationScope
     Context provideContext() {
         return application;
+    }
+
+    @Provides
+    ViewContainer provideViewContainer() {
+        return new DefaultViewContainer();
     }
 
     @Provides

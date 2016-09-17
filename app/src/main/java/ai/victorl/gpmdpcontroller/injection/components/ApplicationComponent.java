@@ -10,6 +10,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 import ai.victorl.gpmdpcontroller.injection.modules.ApplicationModule;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
+import ai.victorl.gpmdpcontroller.ui.views.ViewContainer;
 import dagger.Component;
 
 @Singleton
@@ -21,6 +22,7 @@ public interface ApplicationComponent {
 
     Application application();
     @ApplicationScope Context context();
+    ViewContainer viewContainer();
     LocalSettings localSettings();
     GpmdpLocalSettings gpmdpLocalSettings();
     GpmdpController gpmdpController();

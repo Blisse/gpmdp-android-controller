@@ -4,16 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 
 import ai.victorl.gpmdpcontroller.injection.scopes.ActivityScope;
-import ai.victorl.gpmdpcontroller.ui.views.BaseActivity;
 import dagger.Module;
 import dagger.Provides;
 
 @Module
 public class ActivityModule {
-    private BaseActivity activity;
+    private Activity activity;
 
-    public ActivityModule(BaseActivity activity) {
-        activity = activity;
+    public ActivityModule(Activity activity) {
+        this.activity = activity;
     }
 
     @Provides

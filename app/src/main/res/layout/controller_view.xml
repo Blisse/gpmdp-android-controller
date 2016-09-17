@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.LinearLayoutCompat
+<ai.victorl.gpmdpcontroller.ui.controller.ControllerView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/controller_view"
@@ -9,8 +9,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="ai.victorl.gpmdpcontroller.ui.controller.ControllerActivity">
+    android:paddingTop="@dimen/activity_vertical_margin">
 
     <EditText
         android:id="@+id/controller_ip_edittext"
@@ -34,4 +33,4 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-</android.support.v7.widget.LinearLayoutCompat>
+</ai.victorl.gpmdpcontroller.ui.controller.ControllerView>

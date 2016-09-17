@@ -1,6 +1,8 @@
 package ai.victorl.gpmdpcontroller.ui.controller;
 
-import android.os.Bundle;
+import android.content.Context;
+import android.support.v7.widget.LinearLayoutCompat;
+import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,15 +21,14 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpResponseEvent;
-import ai.victorl.gpmdpcontroller.ui.views.BaseActivity;
+import ai.victorl.gpmdpcontroller.injection.Injector;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
 
-public class ControllerActivity extends BaseActivity {
-
+public class ControllerView extends LinearLayoutCompat {
     @Inject GpmdpLocalSettings gpmdpLocalSettings;
     @Inject GpmdpController gpmdpController;
 
@@ -46,30 +47,32 @@ public class ControllerActivity extends BaseActivity {
         gpmdpController.connect();
     }
 
+    public ControllerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        if (!isInEditMode()) {
+            Injector.activityComponent(context).inject(this);
+        }
+    }
+
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getActivityComponent().inject(this);
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
+        ButterKnife.bind(this);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
 
         ipEditText.setText(gpmdpLocalSettings.getGpmdpIpAddress());
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
         EventBusUtils.safeUnregister(gpmdpController.getEventBus(), this);
-    }
-
-    @Override
-    protected void onPostInflate() {
-        super.onPostInflate();
-        ButterKnife.bind(this);
-    }
-
-    @Override
-    protected int layoutId() {
-        return R.layout.activity_controller;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
