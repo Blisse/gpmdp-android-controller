@@ -6,12 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
 
 import java.util.UUID;
-
-import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.GpmdpControllerApplication;
 import ai.victorl.gpmdpcontroller.R;
@@ -26,11 +22,8 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
     @BindView(R.id.main_drawer_layout) DrawerLayout drawerLayout;
     @BindView(R.id.main_navigation) NavigationView drawer;
-    @BindView(R.id.main_content) ViewGroup content;
 
     private static final String ACT_UNIQUE_KEY = MainActivity.class.getName() + ".unique.key";
-
-    @Inject ViewContainer viewContainer;
 
     private ActivityComponent activityComponent;
     private String uniqueKey;
@@ -58,15 +51,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             uniqueKey = UUID.randomUUID().toString();
         }
-
         getActivityComponent().inject(this);
-        ViewGroup container = viewContainer.forActivity(this);
 
-        LayoutInflater layoutInflater = getLayoutInflater();
-        layoutInflater.inflate(R.layout.main_activity, container);
-
-        ButterKnife.bind(this, container);
-        layoutInflater.inflate(R.layout.controller_view, content);
+        setContentView(R.layout.main_activity);
+        ButterKnife.bind(this);
     }
 
     @Override

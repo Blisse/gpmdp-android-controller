@@ -10,4 +10,12 @@ public interface GpmdpController {
     void disconnect();
 
     boolean isConnected();
+
+    boolean isAuthorized();
+
+    void pair();
+
+    void pair(String authCode);
+
+    void authorize();
 }

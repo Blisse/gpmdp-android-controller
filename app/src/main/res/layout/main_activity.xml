@@ -7,11 +7,11 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     >
-    <FrameLayout
-        android:id="@+id/main_content"
+
+    <ai.victorl.gpmdpcontroller.ui.controller.ControllerView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent"/>
+
     <android.support.design.widget.NavigationView
         android:id="@+id/main_navigation"
         android:layout_width="300dp"
@@ -19,8 +19,9 @@
         android:layout_gravity="start"
         android:background="#fff"
         android:fitsSystemWindows="true"
+        app:headerLayout="@layout/main_drawer_header"
         app:insetForeground="#4000"
         app:menu="@menu/main_drawer"
-        app:headerLayout="@layout/main_drawer_header"
         />
+
 </android.support.v4.widget.DrawerLayout>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ai.victorl.gpmdpcontroller.ui.controller.ControllerView
+<android.support.v7.widget.LinearLayoutCompat
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/controller_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,26 +10,28 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin">
 
-    <EditText
-        android:id="@+id/controller_ip_edittext"
+    <ai.victorl.gpmdpcontroller.ui.views.BetterViewAnimator
+        android:id="@+id/controller_viewanimator"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/controller_ip_edittext_hint"/>
+        android:layout_height="match_parent"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out">
 
-    <Button
-        android:id="@+id/controller_connect_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/controller_connect_button_text"/>
+        <ai.victorl.gpmdpcontroller.ui.controller.ControllerConnectView
+            android:id="@+id/controller_connect_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
-    <TextView
-        android:id="@+id/controller_track_title_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        <ai.victorl.gpmdpcontroller.ui.controller.ControllerPairView
+            android:id="@+id/controller_pair_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
-    <TextView
-        android:id="@+id/controller_track_artist_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        <ai.victorl.gpmdpcontroller.ui.controller.ControllerPlayView
+            android:id="@+id/controller_play_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
-</ai.victorl.gpmdpcontroller.ui.controller.ControllerView>
+    </ai.victorl.gpmdpcontroller.ui.views.BetterViewAnimator>
+
+</android.support.v7.widget.LinearLayoutCompat>

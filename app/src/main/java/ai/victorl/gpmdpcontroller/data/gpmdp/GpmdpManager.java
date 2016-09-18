@@ -2,9 +2,11 @@ package ai.victorl.gpmdpcontroller.data.gpmdp;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Channel;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpResponseEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PairRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import ai.victorl.gpmdpcontroller.utils.NetUtils;
 
@@ -15,6 +17,8 @@ public class GpmdpManager implements GpmdpController {
 
     public GpmdpManager(GpmdpLocalSettings localSettings) {
         this.gpmdpLocalSettings = localSettings;
+
+        EventBusUtils.safeRegister(getEventBus(), this);
     }
 
     @Override
@@ -24,17 +28,15 @@ public class GpmdpManager implements GpmdpController {
 
     @Override
     public void connect() {
-        String gpmdpIpAddress = gpmdpLocalSettings.getGpmdpIpAddress();
+        String gpmdpIpAddress = gpmdpLocalSettings.getHostIpAddress();
 
         if (NetUtils.isValidIpAddress(gpmdpIpAddress)) {
-            EventBusUtils.safeRegister(getEventBus(), this);
             gpmdpWebSocket.connect(gpmdpIpAddress);
         }
     }
 
     @Override
     public void disconnect() {
-        EventBusUtils.safeUnregister(getEventBus(), this);
         gpmdpWebSocket.disconnect();
     }
 
@@ -43,10 +45,36 @@ public class GpmdpManager implements GpmdpController {
         return gpmdpWebSocket.isOpen();
     }
 
-    @Subscribe
-    public void onEvent(GpmdpResponseEvent event) {
-        if (event.response.channel.equals(Channel.CONNECT)) {
+    @Override
+    public boolean isAuthorized() {
+        return gpmdpLocalSettings.getAuthCode() != null;
+    }
 
+    @Override
+    public void pair() {
+        PairRequest request = new PairRequest();
+        gpmdpWebSocket.write(request);
+    }
+
+    @Override
+    public void pair(String pin) {
+        PairRequest request = new PairRequest(pin);
+        gpmdpWebSocket.write(request);
+    }
+
+    @Override
+    public void authorize() {
+        String authCode = gpmdpLocalSettings.getAuthCode();
+        PairRequest request = new PairRequest(authCode);
+        gpmdpWebSocket.write(request);
+        gpmdpWebSocket.getEventBus().post(new GpmdpAuthorizedEvent());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ConnectResponse response) {
+        if (!response.isPinRequired()) {
+            gpmdpLocalSettings.saveAuthCode(response.requestCode);
+            authorize();
         }
     }
 }

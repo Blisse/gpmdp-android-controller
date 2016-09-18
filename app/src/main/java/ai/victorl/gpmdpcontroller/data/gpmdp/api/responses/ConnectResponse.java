@@ -4,5 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class ConnectResponse extends GpmdpResponse {
     @SerializedName("payload")
-    String requestCode;
+    public String requestCode;
+
+    public boolean isPinRequired() {
+        return "CODE_REQUIRED".equals(requestCode);
+    }
 }

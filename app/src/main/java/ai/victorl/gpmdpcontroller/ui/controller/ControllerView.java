@@ -3,10 +3,7 @@ package ai.victorl.gpmdpcontroller.ui.controller;
 import android.content.Context;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.view.LayoutInflater;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -16,42 +13,26 @@ import javax.inject.Inject;
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Channel;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpResponseEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpConnectStateChangedEvent;
 import ai.victorl.gpmdpcontroller.injection.Injector;
+import ai.victorl.gpmdpcontroller.ui.views.BetterViewAnimator;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnTextChanged;
 
 public class ControllerView extends LinearLayoutCompat {
     @Inject GpmdpLocalSettings gpmdpLocalSettings;
     @Inject GpmdpController gpmdpController;
 
-    @BindView(R.id.controller_ip_edittext) EditText ipEditText;
-    @BindView(R.id.controller_connect_button) Button connectButton;
-    @BindView(R.id.controller_track_title_textview) TextView trackTitleTextView;
-    @BindView(R.id.controller_track_artist_textview) TextView trackArtistTextView;
-
-    @OnTextChanged(R.id.controller_ip_edittext)
-    void onTextChangedIp(CharSequence text) {
-        gpmdpLocalSettings.saveGpmdpIpAddress(ipEditText.getText().toString());
-    }
-
-    @OnClick(R.id.controller_connect_button)
-    void onClickConnect(View view) {
-        gpmdpController.connect();
-    }
+    @BindView(R.id.controller_viewanimator) BetterViewAnimator viewAnimator;
 
     public ControllerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         if (!isInEditMode()) {
             Injector.activityComponent(context).inject(this);
         }
+        LayoutInflater.from(context).inflate(R.layout.controller_view, this, true);
     }
 
     @Override
@@ -65,8 +46,6 @@ public class ControllerView extends LinearLayoutCompat {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
-
-        ipEditText.setText(gpmdpLocalSettings.getGpmdpIpAddress());
     }
 
     @Override
@@ -76,15 +55,28 @@ public class ControllerView extends LinearLayoutCompat {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GpmdpResponseEvent event) {
-        GpmdpResponse response = event.response;
-        Channel channel = response.channel;
-        switch (channel) {
-            case TRACK:
-                Track trackInfo = ((TrackResponse) response).trackPayload;
-                trackTitleTextView.setText(trackInfo.title);
-                trackArtistTextView.setText(trackInfo.artist);
+    public void onEvent(GpmdpConnectStateChangedEvent event) {
+        switch (event.state) {
+            case CREATED:
+            case CONNECTING:
+            case CLOSING:
+            case CLOSED:
+            default:
+                viewAnimator.setDisplayedChildId(R.id.controller_connect_view);
+                break;
+            case OPEN:
+                viewAnimator.setDisplayedChildId(R.id.controller_pair_view);
+                if (gpmdpController.isAuthorized()) {
+                    gpmdpController.authorize();
+                } else {
+                    gpmdpController.pair();
+                }
                 break;
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(GpmdpAuthorizedEvent event) {
+        viewAnimator.setDisplayedChildId(R.id.controller_play_view);
     }
 }

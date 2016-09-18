@@ -3,6 +3,8 @@ package ai.victorl.gpmdpcontroller.injection.components;
 import android.app.Application;
 import android.content.Context;
 
+import com.squareup.picasso.Picasso;
+
 import javax.inject.Singleton;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
@@ -10,8 +12,8 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 import ai.victorl.gpmdpcontroller.injection.modules.ApplicationModule;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
-import ai.victorl.gpmdpcontroller.ui.views.ViewContainer;
 import dagger.Component;
+import okhttp3.OkHttpClient;
 
 @Singleton
 @Component(
@@ -22,8 +24,9 @@ public interface ApplicationComponent {
 
     Application application();
     @ApplicationScope Context context();
-    ViewContainer viewContainer();
     LocalSettings localSettings();
     GpmdpLocalSettings gpmdpLocalSettings();
     GpmdpController gpmdpController();
+    OkHttpClient okHttpClient();
+    Picasso picasso();
 }

@@ -1,7 +1,5 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp;
 
-import android.net.Uri;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.neovisionaries.ws.client.WebSocket;
@@ -15,11 +13,22 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpDeserializer;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LyricsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaylistsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SearchResultsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpConnectStateChangedEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpResponseEvent;
 
 public class GpmdpSocket {
     private static int GPMDP_DEFAULT_PORT = 5672;
@@ -29,21 +38,21 @@ public class GpmdpSocket {
             .logNoSubscriberMessages(true)
             .logSubscriberExceptions(true)
             .build();
-    private final Gson gpmdpGson = new GsonBuilder()
+    private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(GpmdpResponse.class, new GpmdpDeserializer())
             .create();
 
-    private WebSocket gpmdpWebSocket;
+    private WebSocket webSocket;
 
     public EventBus getEventBus() {
         return gpmdpEventBus;
     }
 
     public void connect(String gpmdpIpAddress) {
-        if (gpmdpWebSocket == null) {
+        if (webSocket == null) {
             try {
                 String gpmdpUrl = "ws://" + gpmdpIpAddress + ":" + GPMDP_DEFAULT_PORT;
-                gpmdpWebSocket = new WebSocketFactory()
+                webSocket = new WebSocketFactory()
                         .setConnectionTimeout(GPMDP_TIMEOUT)
                         .createSocket(gpmdpUrl)
                         .addListener(new GpmdpSocketListener())
@@ -56,23 +65,65 @@ public class GpmdpSocket {
     }
 
     public void disconnect() {
-        if (gpmdpWebSocket != null) {
-            gpmdpWebSocket.disconnect();
-            gpmdpWebSocket = null;
+        if (webSocket != null) {
+            webSocket.disconnect();
+            webSocket = null;
         }
     }
 
     public boolean isOpen() {
-        return gpmdpWebSocket != null && gpmdpWebSocket.isOpen();
+        return webSocket != null && webSocket.isOpen();
+    }
+
+    public void write(Object data) {
+        if (webSocket != null && webSocket.isOpen()) {
+            webSocket.sendText(gson.toJson(data), true);
+        }
     }
 
     private class GpmdpSocketListener extends WebSocketAdapter {
         @Override
         public void onTextMessage(WebSocket websocket, String text) throws Exception {
             super.onTextMessage(websocket, text);
-            GpmdpResponse response = gpmdpGson.fromJson(text, GpmdpResponse.class);
-            GpmdpResponseEvent event = new GpmdpResponseEvent(response);
-            gpmdpEventBus.post(event);
+            GpmdpResponse response = gson.fromJson(text, GpmdpResponse.class);
+            switch (response.channel) {
+                case API_VERSION:
+                    gpmdpEventBus.post((ApiVersionResponse) response);
+                    break;
+                case CONNECT:
+                    gpmdpEventBus.post((ConnectResponse) response);
+                    break;
+                case LYRICS:
+                    gpmdpEventBus.post((LyricsResponse) response);
+                    break;
+                case PLAY_STATE:
+                    gpmdpEventBus.post((PlayStateResponse) response);
+                    break;
+                case PLAYLISTS:
+                    gpmdpEventBus.post((PlaylistsResponse) response);
+                    break;
+                case QUEUE:
+                    gpmdpEventBus.post((QueueResponse) response);
+                    break;
+                case RATING:
+                    gpmdpEventBus.post((RatingResponse) response);
+                    break;
+                case REPEAT:
+                    gpmdpEventBus.post((RepeatResponse) response);
+                    break;
+                case SEARCH_RESULTS:
+                    gpmdpEventBus.post((SearchResultsResponse) response);
+                    break;
+                case SHUFFLE:
+                    gpmdpEventBus.post((ShuffleResponse) response);
+                    break;
+                case TIME:
+                    gpmdpEventBus.post((TimeResponse) response);
+                    break;
+                case TRACK:
+                    gpmdpEventBus.post((TrackResponse) response);
+                    break;
+            }
         }
 
         @Override
@@ -85,11 +136,10 @@ public class GpmdpSocket {
         public void onStateChanged(WebSocket websocket, WebSocketState newState) throws Exception {
             super.onStateChanged(websocket, newState);
             if (newState == WebSocketState.CLOSED) {
-                gpmdpWebSocket = null;
+                webSocket = null;
             }
 
             gpmdpEventBus.post(new GpmdpConnectStateChangedEvent(newState));
-
         }
     }
 }

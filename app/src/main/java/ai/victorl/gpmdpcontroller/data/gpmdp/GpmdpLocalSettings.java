@@ -2,7 +2,11 @@ package ai.victorl.gpmdpcontroller.data.gpmdp;
 
 public interface GpmdpLocalSettings {
 
-    void saveGpmdpIpAddress(String gpmdpIpAddress);
+    void saveHostIpAddress(String gpmdpIpAddress);
 
-    String getGpmdpIpAddress();
+    String getHostIpAddress();
+
+    void saveAuthCode(String authCode);
+
+    String getAuthCode();
 }
