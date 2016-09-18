@@ -1,5 +1,7 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp;
 
+import android.text.TextUtils;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -47,7 +49,7 @@ public class GpmdpManager implements GpmdpController {
 
     @Override
     public boolean isAuthorized() {
-        return gpmdpLocalSettings.getAuthCode() != null;
+        return !TextUtils.isEmpty(gpmdpLocalSettings.getAuthCode());
     }
 
     @Override

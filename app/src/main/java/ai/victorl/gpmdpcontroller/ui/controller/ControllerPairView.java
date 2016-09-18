@@ -41,14 +41,4 @@ public class ControllerPairView extends LinearLayoutCompat {
         super.onFinishInflate();
         ButterKnife.bind(this);
     }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-    }
 }

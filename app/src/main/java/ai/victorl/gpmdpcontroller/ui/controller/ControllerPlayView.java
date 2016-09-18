@@ -19,6 +19,10 @@ import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
@@ -39,6 +43,11 @@ public class ControllerPlayView extends LinearLayoutCompat {
     @BindView(R.id.controller_time_total_textview) TextView timeTotalTextView;
     @BindView(R.id.controller_time_current_progressbar) ProgressBar timeCurrentProgressBar;
     @BindView(R.id.controller_track_albumart_imageview) ImageView trackAlbumArtImageView;
+    @BindView(R.id.controller_repeat_textview) TextView repeatTextView;
+    @BindView(R.id.controller_shuffle_textview) TextView shuffleTextView;
+    @BindView(R.id.controller_rating_liked_textview) TextView ratingLikedTextView;
+    @BindView(R.id.controller_rating_disliked_textview) TextView ratingDislikedTextView;
+    @BindView(R.id.controller_playstate_textview) TextView playStateTextView;
 
     public ControllerPlayView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -84,5 +93,26 @@ public class ControllerPlayView extends LinearLayoutCompat {
         timeTotalTextView.setText(String.valueOf(total));
         timeCurrentProgressBar.setMax(total);
         timeCurrentProgressBar.setProgress(current);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(RepeatResponse response) {
+        repeatTextView.setText(response.repeat.toString());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ShuffleResponse response) {
+        shuffleTextView.setText(response.shuffle.toString());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(RatingResponse response) {
+        ratingLikedTextView.setText(response.ratingPayload.liked.toString());
+        ratingDislikedTextView.setText(response.ratingPayload.disliked.toString());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(PlayStateResponse response) {
+        playStateTextView.setText(response.playState ? "Playing" : "Paused");
     }
 }

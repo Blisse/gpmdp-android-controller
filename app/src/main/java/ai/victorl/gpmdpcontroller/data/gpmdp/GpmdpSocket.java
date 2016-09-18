@@ -33,6 +33,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
 public class GpmdpSocket {
     private static int GPMDP_DEFAULT_PORT = 5672;
     private static int GPMDP_TIMEOUT = 5000;
+    private static int GPMDP_TIME_DELAY_MS = 500;
 
     private final EventBus gpmdpEventBus = EventBus.builder()
             .logNoSubscriberMessages(true)
@@ -42,6 +43,7 @@ public class GpmdpSocket {
             .registerTypeAdapter(GpmdpResponse.class, new GpmdpDeserializer())
             .create();
 
+    private long lastTimeResponseMs = 0;
     private WebSocket webSocket;
 
     public EventBus getEventBus() {
@@ -91,7 +93,10 @@ public class GpmdpSocket {
                     gpmdpEventBus.post((ApiVersionResponse) response);
                     break;
                 case CONNECT:
-                    gpmdpEventBus.post((ConnectResponse) response);
+                    if (System.currentTimeMillis() - lastTimeResponseMs > GPMDP_TIME_DELAY_MS) {
+                        lastTimeResponseMs = System.currentTimeMillis();
+                        gpmdpEventBus.post((ConnectResponse) response);
+                    }
                     break;
                 case LYRICS:
                     gpmdpEventBus.post((LyricsResponse) response);
