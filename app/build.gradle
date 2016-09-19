@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "ai.victorl.gpmdpcontroller"
-        minSdkVersion 15
+        minSdkVersion 21
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -24,12 +24,14 @@ dependencies {
     final BUTTER_KNIFE_VERSION = '8.2.1'
     final SUPPORT_LIBRARY_VERSION = '24.2.0'
     final DAGGER_VERSION = '2.0.1'
+    final MUSICCOVERVIEW_VERSION = '1.0.0'
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
     compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:design:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:percent:$SUPPORT_LIBRARY_VERSION"
 
     compile "com.jakewharton:butterknife:$BUTTER_KNIFE_VERSION"
     apt "com.jakewharton:butterknife-compiler:$BUTTER_KNIFE_VERSION"
@@ -46,4 +48,5 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.neovisionaries:nv-websocket-client:1.30'
+    compile "com.github.andremion:musiccoverview:$MUSICCOVERVIEW_VERSION"
 }

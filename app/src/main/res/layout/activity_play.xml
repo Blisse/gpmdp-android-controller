@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ai.victorl.gpmdpcontroller.ui.views.InsetsPercentRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <TextView
+        android:id="@+id/controller_rating_liked_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/controller_rating_disliked_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <com.andremion.music.MusicCoverView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:scaleType="centerInside"
+        android:transitionName="@string/transition_name_cover"
+        app:layout_heightPercent="45%"
+        app:shape="circle"/>
+
+    <include
+        android:id="@+id/title"
+        layout="@layout/track_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        app:layout_marginTopPercent="10%"/>
+
+    <ai.victorl.gpmdpcontroller.ui.views.ProgressView
+        android:id="@+id/progress"
+        android:layout_centerInParent="true"
+        android:transitionName="@string/transition_name_progress"
+        app:layout_aspectRatio="100%"
+        app:layout_heightPercent="50%"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:scaleType="center"
+        android:src="@drawable/ic_pause_animatable"
+        android:transitionName="@string/transition_name_fab"/>
+
+    <Space
+        android:id="@+id/timers_anchor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cover"
+        android:layout_centerHorizontal="true"
+        app:layout_widthPercent="25%"/>
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/timers_anchor"
+        android:layout_toStartOf="@id/timers_anchor"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+        android:transitionName="@string/transition_name_time"
+        tools:text="02:30"/>
+
+    <TextView
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/timers_anchor"
+        android:layout_toEndOf="@id/timers_anchor"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+        android:transitionName="@string/transition_name_duration"
+        tools:text="04:30"/>
+
+    <LinearLayout
+        android:id="@+id/controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_horizontal"
+        android:transitionGroup="true"
+        app:layout_marginBottomPercent="5%">
+
+        <ImageView
+            android:id="@+id/repeat"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_repeat_white_24dp"/>
+
+        <ImageView
+            android:id="@+id/previous"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_skip_previous_white_24dp"/>
+
+        <ImageView
+            android:id="@+id/next"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_skip_next_white_24dp"/>
+
+        <ImageView
+            android:id="@+id/shuffle"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_shuffle_white_24dp"/>
+
+    </LinearLayout>
+
+</ai.victorl.gpmdpcontroller.ui.views.InsetsPercentRelativeLayout>

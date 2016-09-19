@@ -1,29 +1,22 @@
-package ai.victorl.gpmdpcontroller.ui.views;
+package ai.victorl.gpmdpcontroller.ui.activities;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import java.util.UUID;
 
 import ai.victorl.gpmdpcontroller.GpmdpControllerApplication;
-import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.injection.Injector;
 import ai.victorl.gpmdpcontroller.injection.components.ActivityComponent;
 import ai.victorl.gpmdpcontroller.injection.components.ApplicationComponent;
 import ai.victorl.gpmdpcontroller.injection.components.DaggerActivityComponent;
 import ai.victorl.gpmdpcontroller.injection.modules.ActivityModule;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
-    @BindView(R.id.main_drawer_layout) DrawerLayout drawerLayout;
-    @BindView(R.id.main_navigation) NavigationView drawer;
-
-    private static final String ACT_UNIQUE_KEY = MainActivity.class.getName() + ".unique.key";
+public abstract class BaseActivity extends AppCompatActivity {
+    private final String ACT_UNIQUE_KEY = getClassName() + ".unique.key";
 
     private ActivityComponent activityComponent;
     private String uniqueKey;
@@ -43,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null && savedInstanceState.containsKey(ACT_UNIQUE_KEY)) {
@@ -51,10 +44,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             uniqueKey = UUID.randomUUID().toString();
         }
-        getActivityComponent().inject(this);
-
-        setContentView(R.layout.main_activity);
-        ButterKnife.bind(this);
     }
 
     @Override
@@ -76,4 +65,19 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.getSystemService(name);
     }
+
+    @Override
+    public void setContentView(@LayoutRes int layoutResID) {
+        onPreInflate();
+        super.setContentView(layoutResID);
+        onPostInflate();
+    }
+
+    protected String getUniqueKey() {
+        return uniqueKey;
+    }
+
+    abstract void onPreInflate();
+    abstract void onPostInflate();
+    abstract String getClassName();
 }
