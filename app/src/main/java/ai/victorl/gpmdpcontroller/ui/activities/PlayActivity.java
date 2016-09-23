@@ -90,6 +90,8 @@ public class PlayActivity extends BaseActivity {
         setContentView(R.layout.activity_play);
 
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
+
+        gpmdpController.requestState();
     }
 
     @Override
@@ -164,7 +166,7 @@ public class PlayActivity extends BaseActivity {
                 shuffleImageView.getDrawable().setColorFilter(accentColor, PorterDuff.Mode.MULTIPLY);
                 break;
             case NO_SHUFFLE:
-                shuffleImageView.getDrawable().clearColorFilter();
+                repeatImageView.getDrawable().setColorFilter(whiteColor, PorterDuff.Mode.MULTIPLY);
                 break;
         }
     }

@@ -10,6 +10,7 @@ import ai.victorl.gpmdpcontroller.ui.activities.ConnectActivity;
 import ai.victorl.gpmdpcontroller.ui.activities.PairActivity;
 import ai.victorl.gpmdpcontroller.ui.activities.PlayActivity;
 import ai.victorl.gpmdpcontroller.ui.activities.QueueActivity;
+import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
 import ai.victorl.gpmdpcontroller.ui.controller.ControllerConnectView;
 import ai.victorl.gpmdpcontroller.ui.controller.ControllerPairView;
 import ai.victorl.gpmdpcontroller.ui.controller.ControllerPlayView;
@@ -26,14 +27,20 @@ import dagger.Component;
         }
 )
 public interface ActivityComponent {
+    // Activities
     void inject(ConnectActivity activity);
     void inject(PairActivity activity);
     void inject(PlayActivity activity);
     void inject(QueueActivity activity);
+
+    // Views
     void inject(ControllerView view);
     void inject(ControllerPlayView view);
     void inject(ControllerConnectView view);
     void inject(ControllerPairView view);
+
+    // Adapters
+    void inject(PlaylistAdapter view);
 
     Activity activity();
     @ActivityScope Context context();

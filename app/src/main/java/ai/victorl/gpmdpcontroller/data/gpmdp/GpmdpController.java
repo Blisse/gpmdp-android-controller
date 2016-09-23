@@ -14,4 +14,6 @@ public interface GpmdpController {
     void pin(String authCode);
 
     void tryAuthorize();
+
+    void requestState();
 }

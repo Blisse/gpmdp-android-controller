@@ -14,4 +14,10 @@ public class EventBusUtils {
             eventBus.unregister(subscriber);
         }
     }
+
+    public static <T> void safePost(EventBus eventBus, T object) {
+        if (object != null) {
+            eventBus.post(object);
+        }
+    }
 }

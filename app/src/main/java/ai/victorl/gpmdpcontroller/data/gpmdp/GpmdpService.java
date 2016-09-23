@@ -36,17 +36,16 @@ public class GpmdpService implements GpmdpController {
             .logNoSubscriberMessages(true)
             .logSubscriberExceptions(true)
             .build();
-    private final GpmdpSocket socket;
     private final GpmdpLocalSettings localSettings;
     private final Gson gson;
+    private final GpmdpSocket socket = new GpmdpSocket();
+    private final GpmdpState state = new GpmdpState();
 
     private long lastTimeResponseMs = 0;
 
     public GpmdpService(GpmdpLocalSettings localSettings, Gson gson) {
         this.localSettings = localSettings;
         this.gson = gson;
-
-        socket = new GpmdpSocket();
 
         EventBusUtils.safeRegister(socket.getEventBus(), this);
     }
@@ -103,12 +102,28 @@ public class GpmdpService implements GpmdpController {
         }
     }
 
+    @Override
+    public void requestState() {
+        EventBusUtils.safePost(serviceEventBus, state.apiVersion);
+        EventBusUtils.safePost(serviceEventBus, state.lyrics);
+        EventBusUtils.safePost(serviceEventBus, state.playState);
+        EventBusUtils.safePost(serviceEventBus, state.playlists);
+        EventBusUtils.safePost(serviceEventBus, state.queue);
+        EventBusUtils.safePost(serviceEventBus, state.rating);
+        EventBusUtils.safePost(serviceEventBus, state.repeat);
+        EventBusUtils.safePost(serviceEventBus, state.searchResults);
+        EventBusUtils.safePost(serviceEventBus, state.shuffle);
+        EventBusUtils.safePost(serviceEventBus, state.time);
+        EventBusUtils.safePost(serviceEventBus, state.track);
+    }
+
     @Subscribe
     public void onEvent(String text) {
         GpmdpResponse response = gson.fromJson(text, GpmdpResponse.class);
         switch (response.channel) {
             case API_VERSION:
-                serviceEventBus.post((ApiVersionResponse) response);
+                state.apiVersion = (ApiVersionResponse) response;
+                serviceEventBus.post(state.apiVersion);
                 break;
             case CONNECT:
                 ConnectResponse connectResponse = (ConnectResponse) response;
@@ -119,37 +134,47 @@ public class GpmdpService implements GpmdpController {
                 }
                 break;
             case LYRICS:
-                serviceEventBus.post((LyricsResponse) response);
+                state.lyrics = (LyricsResponse) response;
+                serviceEventBus.post(state.lyrics);
                 break;
             case PLAY_STATE:
-                serviceEventBus.post((PlayStateResponse) response);
+                state.playState = (PlayStateResponse) response;
+                serviceEventBus.post(state.playState);
                 break;
             case PLAYLISTS:
-                serviceEventBus.post((PlaylistsResponse) response);
+                state.playlists = (PlaylistsResponse) response;
+                serviceEventBus.post(state.playlists);
                 break;
             case QUEUE:
-                serviceEventBus.post((QueueResponse) response);
+                state.queue = (QueueResponse) response;
+                serviceEventBus.post(state.queue);
                 break;
             case RATING:
-                serviceEventBus.post((RatingResponse) response);
+                state.rating = (RatingResponse) response;
+                serviceEventBus.post(state.rating);
                 break;
             case REPEAT:
-                serviceEventBus.post((RepeatResponse) response);
+                state.repeat = (RepeatResponse) response;
+                serviceEventBus.post(state.repeat);
                 break;
             case SEARCH_RESULTS:
-                serviceEventBus.post((SearchResultsResponse) response);
+                state.searchResults = (SearchResultsResponse) response;
+                serviceEventBus.post(state.searchResults);
                 break;
             case SHUFFLE:
-                serviceEventBus.post((ShuffleResponse) response);
+                state.shuffle = (ShuffleResponse) response;
+                serviceEventBus.post(state.shuffle);
                 break;
             case TIME:
+                state.time = (TimeResponse) response;
                 if (System.currentTimeMillis() - lastTimeResponseMs > GPMDP_TIME_DELAY_MS) {
                     lastTimeResponseMs = System.currentTimeMillis();
-                    serviceEventBus.post((TimeResponse) response);
+                    serviceEventBus.post(state.time);
                 }
                 break;
             case TRACK:
-                serviceEventBus.post((TrackResponse) response);
+                state.track = (TrackResponse) response;
+                serviceEventBus.post(state.track);
                 break;
         }
     }

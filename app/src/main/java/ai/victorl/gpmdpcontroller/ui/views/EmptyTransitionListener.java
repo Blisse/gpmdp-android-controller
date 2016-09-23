@@ -2,7 +2,7 @@ package ai.victorl.gpmdpcontroller.ui.views;
 
 import android.transition.Transition;
 
-public class TransitionAdapter implements Transition.TransitionListener {
+public class EmptyTransitionListener implements Transition.TransitionListener {
     @Override
     public void onTransitionStart(Transition transition) {
     }

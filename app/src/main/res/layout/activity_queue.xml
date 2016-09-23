@@ -9,7 +9,6 @@
 
     <com.andremion.music.MusicCoverView
         android:id="@+id/cover"
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:scaleType="centerCrop"
         android:transitionName="@string/transition_name_cover"
@@ -121,7 +120,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/playlist"
         app:layoutManager="LinearLayoutManager"
-        tools:listitem="@layout/activity_queue_item"/>
+        tools:listitem="@layout/track_item"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
