@@ -2,6 +2,7 @@
     <string name="app_name">GPMDP Controller</string>
     <string name="controller_ip_edittext_hint">Enter your GPMDP host IP here</string>
     <string name="controller_connect_button_text">Connect</string>
+    <string name="controller_connect_help_textview">If connecting does fails, common errors include: Wi-Fi turned off, wrong IP.</string>
     <string name="controller_pin_edittext_hint">Enter the 4-digit PIN from your Google Play Music Desktop Player</string>
     <string name="controller_pair_button_text">Pair</string>
 

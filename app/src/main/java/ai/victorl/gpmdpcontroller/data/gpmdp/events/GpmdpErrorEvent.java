@@ -1,9 +1,11 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp.events;
 
-public class GpmdpErrorEvent {
-    public String errorMessage;
+import com.neovisionaries.ws.client.WebSocketException;
 
-    public GpmdpErrorEvent(String errorMessage) {
-        this.errorMessage = errorMessage;
+public class GpmdpErrorEvent {
+    public WebSocketException error;
+
+    public GpmdpErrorEvent(WebSocketException error) {
+        this.error = error;
     }
 }

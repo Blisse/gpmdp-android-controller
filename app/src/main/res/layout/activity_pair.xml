@@ -20,7 +20,7 @@
         android:hint="@string/controller_pin_edittext_hint"/>
 
     <Button
-        android:id="@+id/controller_pair_button"
+        android:id="@+id/controller_pin_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/controller_pair_button_text"/>

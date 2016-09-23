@@ -21,11 +21,11 @@ public class ControllerPairView extends LinearLayoutCompat {
     @Inject GpmdpController gpmdpController;
 
     @BindView(R.id.controller_pin_edittext) EditText pinEditText;
-    @BindView(R.id.controller_pair_button) Button pairButton;
+    @BindView(R.id.controller_pin_button) Button pairButton;
 
-    @OnClick(R.id.controller_pair_button)
+    @OnClick(R.id.controller_pin_button)
     void onClickPair(View view) {
-        gpmdpController.pair(pinEditText.getText().toString());
+        gpmdpController.pin(pinEditText.getText().toString());
     }
 
     public ControllerPairView(Context context, AttributeSet attrs) {

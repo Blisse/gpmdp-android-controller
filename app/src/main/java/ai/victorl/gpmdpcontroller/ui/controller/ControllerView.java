@@ -14,7 +14,6 @@ import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpConnectStateChangedEvent;
 import ai.victorl.gpmdpcontroller.injection.Injector;
 import ai.victorl.gpmdpcontroller.ui.views.BetterViewAnimator;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
@@ -52,27 +51,6 @@ public class ControllerView extends LinearLayoutCompat {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         EventBusUtils.safeUnregister(gpmdpController.getEventBus(), this);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GpmdpConnectStateChangedEvent event) {
-        switch (event.state) {
-            case CREATED:
-            case CONNECTING:
-            case CLOSING:
-            case CLOSED:
-            default:
-                viewAnimator.setDisplayedChildId(R.id.controller_connect_view);
-                break;
-            case OPEN:
-                viewAnimator.setDisplayedChildId(R.id.controller_pair_view);
-                if (gpmdpController.isAuthorized()) {
-                    gpmdpController.authorize();
-                } else {
-                    gpmdpController.pair();
-                }
-                break;
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

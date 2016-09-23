@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpConnectStateChangedEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindView;
@@ -25,11 +25,11 @@ public class PairActivity extends BaseActivity {
     @Inject GpmdpController gpmdpController;
 
     @BindView(R.id.controller_pin_edittext) EditText pinEditText;
-    @BindView(R.id.controller_pair_button) Button pairButton;
+    @BindView(R.id.controller_pin_button) Button pairButton;
 
-    @OnClick(R.id.controller_pair_button)
-    void onClickPair(View view) {
-        gpmdpController.pair(pinEditText.getText().toString());
+    @OnClick(R.id.controller_pin_button)
+    void onClickPin(View view) {
+        gpmdpController.pin(pinEditText.getText().toString());
     }
 
     @Override
@@ -39,11 +39,7 @@ public class PairActivity extends BaseActivity {
 
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
 
-        if (gpmdpController.isAuthorized()) {
-            gpmdpController.authorize();
-        } else {
-            gpmdpController.pair();
-        }
+        gpmdpController.tryAuthorize();
     }
 
     @Override
@@ -69,7 +65,7 @@ public class PairActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GpmdpConnectStateChangedEvent event) {
+    public void onEvent(GpmdpStateChangedEvent event) {
         switch (event.state) {
             case CLOSED:
                 Intents.maybeStartActivity(this, new Intent(this, ConnectActivity.class));

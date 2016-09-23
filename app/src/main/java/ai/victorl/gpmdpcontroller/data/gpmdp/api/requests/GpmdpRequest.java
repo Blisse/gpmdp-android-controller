@@ -5,5 +5,5 @@ import java.util.List;
 public class GpmdpRequest {
     public String namespace;
     public String method;
-    public List<String> arguments;
+    public List<Object> arguments;
 }

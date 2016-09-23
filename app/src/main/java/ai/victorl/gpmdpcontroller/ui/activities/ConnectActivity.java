@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpConnectStateChangedEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindView;
@@ -39,6 +39,8 @@ public class ConnectActivity extends BaseActivity {
         setContentView(R.layout.activity_connect);
 
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
+
+        gpmdpController.connect();
     }
 
     @Override
@@ -65,7 +67,7 @@ public class ConnectActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GpmdpConnectStateChangedEvent event) {
+    public void onEvent(GpmdpStateChangedEvent event) {
         switch (event.state) {
             case OPEN:
                 Intents.maybeStartActivity(this, new Intent(this, PairActivity.class));

@@ -18,10 +18,7 @@ public final class Intents {
     public static boolean maybeStartActivity(Context context, Intent intent) {
         return maybeStartActivity(context, intent, null, false);
     }
-    /**
-     * Attempt to launch the supplied {@link Intent}. Queries on-device packages before launching and
-     * will display a simple message if none are available to handle it.
-     */
+
     public static boolean maybeStartActivity(Context context, Intent intent, Bundle bundle) {
         return maybeStartActivity(context, intent, bundle, false);
     }
@@ -35,11 +32,6 @@ public final class Intents {
         return maybeStartActivity(context, intent, null, true);
     }
 
-    /**
-     * Attempt to launch Android's chooser for the supplied {@link Intent}. Queries on-device
-     * packages before launching and will display a simple message if none are available to handle
-     * it.
-     */
     public static boolean maybeStartChooser(Context context, Intent intent, Bundle bundle) {
         return maybeStartActivity(context, intent, bundle, true);
     }
@@ -50,11 +42,7 @@ public final class Intents {
                 intent = Intent.createChooser(intent, null);
             }
 
-            if (bundle != null) {
-                context.startActivity(intent, bundle);
-            } else {
-                context.startActivity(intent);
-            }
+            context.startActivity(intent, bundle);
             return true;
         } else {
             Toast.makeText(context, R.string.no_intent_handler, Toast.LENGTH_LONG).show();

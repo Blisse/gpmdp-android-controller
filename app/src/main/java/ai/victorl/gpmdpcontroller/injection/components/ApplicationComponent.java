@@ -3,6 +3,7 @@ package ai.victorl.gpmdpcontroller.injection.components;
 import android.app.Application;
 import android.content.Context;
 
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import javax.inject.Singleton;
@@ -27,6 +28,7 @@ public interface ApplicationComponent {
     LocalSettings localSettings();
     GpmdpLocalSettings gpmdpLocalSettings();
     GpmdpController gpmdpController();
+    Gson gson();
     OkHttpClient okHttpClient();
     Picasso picasso();
 }

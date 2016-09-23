@@ -39,7 +39,7 @@ public class QueueActivity extends BaseActivity {
                 new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
                 new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)),
                 new Pair<>((View) playPauseFab, ViewCompat.getTransitionName(playPauseFab)));
-        Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), options.toBundle());
+        Intents.maybeStartActivity(this, new Intent(this, PlayActivity.class), options.toBundle());
     }
 
     @Override
@@ -63,4 +63,6 @@ public class QueueActivity extends BaseActivity {
     String getClassName() {
         return QueueActivity.class.getSimpleName();
     }
+
+
 }

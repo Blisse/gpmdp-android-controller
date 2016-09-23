@@ -3,6 +3,8 @@ package ai.victorl.gpmdpcontroller.injection.modules;
 import android.app.Application;
 import android.content.Context;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
@@ -12,8 +14,10 @@ import javax.inject.Singleton;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpManager;
+import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpService;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSettings;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpDeserializer;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
 import ai.victorl.gpmdpcontroller.data.storage.ApplicationSharedPreferences;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
@@ -57,8 +61,15 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    GpmdpController provideGpmdpController(GpmdpLocalSettings gpmdpLocalSettings) {
-        return new GpmdpManager(gpmdpLocalSettings);
+    GpmdpController provideGpmdpController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson) {
+        return new GpmdpService(gpmdpLocalSettings, gson);
+    }
+
+    @Provides
+    Gson provideGson() {
+        return new GsonBuilder()
+                .registerTypeAdapter(GpmdpResponse.class, new GpmdpDeserializer())
+                .create();
     }
 
     @Provides

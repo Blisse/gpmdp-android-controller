@@ -33,9 +33,11 @@
         android:orientation="vertical"
         android:padding="@dimen/activity_vertical_margin">
 
-        <!--<include-->
-            <!--android:id="@+id/title"-->
-            <!--layout="@layout/track_title"/>-->
+        <include
+            android:id="@+id/title"
+            layout="@layout/track_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
         <LinearLayout
             android:layout_width="match_parent"

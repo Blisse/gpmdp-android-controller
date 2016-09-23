@@ -1,9 +1,13 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.support.v4.view.ViewCompat;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -27,6 +31,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
+import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindColor;
@@ -69,6 +74,14 @@ public class PlayActivity extends BaseActivity {
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
         musicCoverView.stop();
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                new Pair<>((View) musicCoverView, ViewCompat.getTransitionName(musicCoverView)),
+                new Pair<>((View) titleView, ViewCompat.getTransitionName(titleView)),
+                new Pair<>((View) timeTextView, ViewCompat.getTransitionName(timeTextView)),
+                new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
+                new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)),
+                new Pair<>((View) playPauseFab, ViewCompat.getTransitionName(playPauseFab)));
+        Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), options.toBundle());
     }
 
     @Override
