@@ -23,12 +23,13 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.PairActivity">
-        </activity>
-        <activity android:name=".ui.activities.PlayActivity">
-        </activity>
-        <activity android:name=".ui.activities.QueueActivity">
-        </activity>
+        <activity android:name=".ui.activities.PairActivity"/>
+        <activity
+            android:name=".ui.activities.PlayActivity"
+            android:theme="@style/AppTheme.Play"/>
+        <activity
+            android:name=".ui.activities.QueueActivity"
+            android:theme="@style/AppTheme.Queue"/>
     </application>
 
 </manifest>

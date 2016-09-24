@@ -22,7 +22,7 @@
         android:layout_alignEnd="@+id/pane_anchor"
         android:layout_alignStart="@+id/pane_anchor"
         android:layout_alignTop="@+id/pane_anchor"
-        android:background="@color/colorPane"/>
+        android:background="@color/transparent_white"/>
 
     <LinearLayout
         android:id="@+id/pane_anchor"

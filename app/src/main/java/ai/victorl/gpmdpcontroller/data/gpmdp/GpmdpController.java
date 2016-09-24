@@ -9,11 +9,15 @@ public interface GpmdpController {
 
     void disconnect();
 
-    boolean isConnected();
-
     void pin(String authCode);
 
     void tryAuthorize();
 
     void requestState();
+
+    void playPause();
+
+    void forward();
+
+    void rewind();
 }

@@ -9,7 +9,8 @@ import com.neovisionaries.ws.client.WebSocketState;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PairRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.ConnectRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PlaybackRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
@@ -69,28 +70,23 @@ public class GpmdpService implements GpmdpController {
         socket.disconnect();
     }
 
-    @Override
-    public boolean isConnected() {
-        return socket.isOpen();
-    }
-
     private boolean isAuthorized() {
         return !TextUtils.isEmpty(localSettings.getAuthCode());
     }
 
     private void pair() {
-        socket.write(gson.toJson(PairRequest.Factory.buildPairRequest()));
+        socket.write(gson.toJson(ConnectRequest.Factory.buildPairRequest()));
     }
 
     private void authorize() {
         String authCode = localSettings.getAuthCode();
-        socket.write(gson.toJson(PairRequest.Factory.buildAuthRequest(authCode)));
+        socket.write(gson.toJson(ConnectRequest.Factory.buildAuthRequest(authCode)));
         serviceEventBus.post(new GpmdpAuthorizedEvent());
     }
 
     @Override
     public void pin(String pin) {
-        socket.write(gson.toJson(PairRequest.Factory.buildPinRequest(pin)));
+        socket.write(gson.toJson(ConnectRequest.Factory.buildPinRequest(pin)));
     }
 
     @Override
@@ -115,6 +111,21 @@ public class GpmdpService implements GpmdpController {
         EventBusUtils.safePost(serviceEventBus, state.shuffle);
         EventBusUtils.safePost(serviceEventBus, state.time);
         EventBusUtils.safePost(serviceEventBus, state.track);
+    }
+
+    @Override
+    public void playPause() {
+        socket.write(gson.toJson(PlaybackRequest.Factory.playPauseRequest()));
+    }
+
+    @Override
+    public void forward() {
+        socket.write(gson.toJson(PlaybackRequest.Factory.forwardRequest()));
+    }
+
+    @Override
+    public void rewind() {
+        socket.write(gson.toJson(PlaybackRequest.Factory.rewindRequest()));
     }
 
     @Subscribe

@@ -8,6 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
         <!--Translucent status bar-->
         <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
     </style>
 
     <style name="AppTheme.Queue">

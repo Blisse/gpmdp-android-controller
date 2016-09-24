@@ -56,7 +56,7 @@ public class GpmdpSocket {
     }
 
     public void write(String data) {
-        if (webSocket != null && webSocket.isOpen()) {
+        if (isOpen()) {
             webSocket.sendText(data, true);
         }
     }
