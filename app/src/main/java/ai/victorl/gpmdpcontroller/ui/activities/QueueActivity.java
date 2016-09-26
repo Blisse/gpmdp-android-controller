@@ -18,15 +18,16 @@ import com.squareup.picasso.Picasso;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
 import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
@@ -50,7 +51,6 @@ public class QueueActivity extends BaseActivity {
     @BindView(R.id.name) TextView playlistNameTextView;
     @BindView(R.id.counter) TextView playlistCounterTextView;
     @BindView(R.id.tracks) RecyclerView tracksRecyclerView;
-
 
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
@@ -101,23 +101,24 @@ public class QueueActivity extends BaseActivity {
         return QueueActivity.class.getSimpleName();
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(TrackResponse response) {
-        Track trackInfo = response.trackPayload;
-        trackTitleTextView.setText(trackInfo.title);
-        trackArtistTextView.setText(trackInfo.artist);
-        picasso.load(trackInfo.albumArt)
+    public void onEvent(Track track) {
+        trackTitleTextView.setText(track.title);
+        trackArtistTextView.setText(track.artist);
+        picasso.load(track.albumArt)
                 .fit()
                 .centerCrop()
                 .into(musicCoverView);
+        playlistAdapter.setCurrentTrack(track);
+        if (playlistAdapter.getCurrentTrackIndex() != -1) {
+            tracksRecyclerView.smoothScrollToPosition(playlistAdapter.getCurrentTrackIndex());
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(TimeResponse response) {
-        Time timeInfo = response.timePayload;
-        int currentSeconds = timeInfo.current / 1000;
-        int totalSeconds = timeInfo.total / 1000;
+    public void onEvent(Time time) {
+        int currentSeconds = time.current / 1000;
+        int totalSeconds = time.total / 1000;
 
         timeTextView.setText(DateUtils.formatElapsedTime(currentSeconds));
         durationTextView.setText(DateUtils.formatElapsedTime(totalSeconds));
@@ -128,16 +129,32 @@ public class QueueActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(QueueResponse response) {
+    public void onEvent(QueueResponse queueResponse) {
+        List<Track> queue = queueResponse.queue;
         playlistNameTextView.setText("Queue");
-        playlistCounterTextView.setText(response.queue.size() + " songs");
-        playlistAdapter.setTracks(response.queue);
+        playlistCounterTextView.setText(queue.size() + " songs");
+        playlistAdapter.setTracks(queue);
 
-        for (Track track : response.queue) {
+        for (Track track : queue) {
             if (track.title.equals(trackTitleTextView.getText())
-                && track.artist.equals(trackArtistTextView.getText())) {
-                tracksRecyclerView.smoothScrollToPosition(response.queue.indexOf(track));
+                    && track.artist.equals(trackArtistTextView.getText())) {
+                playlistAdapter.setCurrentTrack(track);
+                if (playlistAdapter.getCurrentTrackIndex() != -1) {
+                    tracksRecyclerView.smoothScrollToPosition(playlistAdapter.getCurrentTrackIndex());
+                }
+                break;
             }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(PlaybackState playbackState) {
+        switch (playbackState) {
+            case STOPPED:
+            case PAUSED:
+                break;
+            case PLAYING:
+                break;
         }
     }
 }

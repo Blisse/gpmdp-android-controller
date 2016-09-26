@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.injection.Injector;
+import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -26,6 +27,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     @Inject Picasso picasso;
 
     private final List<Track> tracks = new ArrayList<>();
+    private int activePosition = -1;
 
     public PlaylistAdapter(Context context) {
         Injector.activityComponent(context).inject(this);
@@ -37,6 +39,25 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         this.notifyDataSetChanged();
     }
 
+    public void setCurrentTrack(Track currentTrack) {
+        if (currentTrack != null) {
+            notifyItemChanged(activePosition);
+
+            activePosition = -1;
+            for (Track track : tracks) {
+                if (currentTrack.equals(track)) {
+                    activePosition = tracks.indexOf(track);
+                    break;
+                }
+            }
+            notifyItemChanged(activePosition);
+        }
+    }
+
+    public int getCurrentTrackIndex() {
+        return activePosition;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
@@ -45,7 +66,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         Track track = tracks.get(position);
         picasso.load(track.albumArt)
                 .fit()
@@ -57,9 +78,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Nothing to do
             }
         });
+
+        holder.setActive(position == activePosition);
     }
 
     @Override
@@ -73,10 +95,20 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         @BindView(R.id.title) public TextView titleTextView;
         @BindView(R.id.artist) public TextView artistTextView;
         @BindView(R.id.duration) public TextView durationTextView;
+        @BindColor(R.color.pacifica) int activeColor;
+        @BindColor(R.color.slate) int inactiveColor;
 
         public ViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
+        }
+
+        public void setActive(boolean active) {
+            if (active) {
+                rootView.setBackgroundColor(activeColor);
+            } else {
+                rootView.setBackgroundColor(inactiveColor);
+            }
         }
     }
 }

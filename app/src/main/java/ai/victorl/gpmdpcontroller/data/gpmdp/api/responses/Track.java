@@ -9,4 +9,15 @@ public class Track {
     public String albumArt;
     public Integer duration;
     public Integer playCount;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Track) {
+            Track otherTrack = (Track) obj;
+            return title.equals(otherTrack.title)
+                    && artist.equals(otherTrack.artist)
+                    && album.equals(otherTrack.album);
+        }
+        return super.equals(obj);
+    }
 }

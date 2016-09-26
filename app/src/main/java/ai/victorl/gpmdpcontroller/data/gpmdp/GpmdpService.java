@@ -199,11 +199,11 @@ public class GpmdpService implements GpmdpController {
                 serviceEventBus.post(state.playbackState);
                 break;
             case PLAYLISTS:
-                state.playlists = ((PlaylistsResponse) response).playlistsPayload;
+                state.playlists = (PlaylistsResponse) response;
                 serviceEventBus.post(state.playlists);
                 break;
             case QUEUE:
-                state.queue = ((QueueResponse) response).queue;
+                state.queue = (QueueResponse) response;
                 serviceEventBus.post(state.queue);
                 break;
             case RATING:

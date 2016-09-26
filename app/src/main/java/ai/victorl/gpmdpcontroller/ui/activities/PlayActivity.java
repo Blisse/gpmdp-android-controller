@@ -62,7 +62,7 @@ public class PlayActivity extends BaseActivity {
     @BindDrawable(R.drawable.ic_repeat_white_24dp) Drawable repeatWhiteDrawable;
     @BindDrawable(R.drawable.ic_repeat_one_white_24dp) Drawable repeatOneWhiteDrawable;
 
-    @BindColor(R.color.colorAccent) int accentColor;
+    @BindColor(R.color.pacifica) int accentColor;
     @BindColor(android.R.color.white) int whiteColor;
 
     @Override
