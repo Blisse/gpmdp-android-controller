@@ -7,15 +7,31 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/pacifica"
-        android:elevation="4dp"
-        android:fitsSystemWindows="true"
-        android:minHeight="?attr/actionBarSize"
-        app:title="@string/app_name"/>
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/pacifica"
+            android:elevation="4dp"
+            android:fitsSystemWindows="true"
+            android:minHeight="?attr/actionBarSize">
+
+            <include
+                android:id="@+id/title"
+                layout="@layout/track_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                app:layout_marginBottomPercent="25%"/>
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
 
     <com.andremion.music.MusicCoverView
         android:id="@+id/cover"
@@ -26,14 +42,6 @@
         android:transitionName="@string/transition_name_cover"
         app:layout_heightPercent="43%"
         app:shape="circle"/>
-
-    <include
-        android:id="@+id/title"
-        layout="@layout/track_header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        app:layout_marginBottomPercent="25%"/>
 
     <ai.victorl.gpmdpcontroller.ui.views.ProgressView
         android:id="@+id/progress"

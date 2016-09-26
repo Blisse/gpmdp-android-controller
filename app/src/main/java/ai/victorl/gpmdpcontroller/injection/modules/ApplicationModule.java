@@ -8,6 +8,8 @@ import com.google.gson.GsonBuilder;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 
 import javax.inject.Singleton;
@@ -16,8 +18,10 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpService;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpDeserializer;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.GpmdpResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequestSerializer;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponseDeserializer;
 import ai.victorl.gpmdpcontroller.data.storage.ApplicationSharedPreferences;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
@@ -61,14 +65,15 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    GpmdpController provideGpmdpController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson) {
-        return new GpmdpService(gpmdpLocalSettings, gson);
+    GpmdpController provideGpmdpController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson, EventBus eventBus) {
+        return new GpmdpService(gpmdpLocalSettings, gson, eventBus);
     }
 
     @Provides
     Gson provideGson() {
         return new GsonBuilder()
-                .registerTypeAdapter(GpmdpResponse.class, new GpmdpDeserializer())
+                .registerTypeHierarchyAdapter(GpmdpRequest.class, new GpmdpRequestSerializer())
+                .registerTypeAdapter(GpmdpResponse.class, new GpmdpResponseDeserializer())
                 .create();
     }
 
@@ -86,6 +91,14 @@ public class ApplicationModule {
     Picasso providePicasso(Application app, OkHttpClient client) {
         return new Picasso.Builder(app)
                 .downloader(new OkHttp3Downloader(client))
+                .build();
+    }
+
+    @Provides
+    EventBus provideEventBus() {
+        return EventBus.builder()
+                .logNoSubscriberMessages(true)
+                .logSubscriberExceptions(true)
                 .build();
     }
 }

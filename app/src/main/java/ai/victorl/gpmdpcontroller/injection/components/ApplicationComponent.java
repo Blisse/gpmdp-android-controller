@@ -6,6 +6,8 @@ import android.content.Context;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
+import org.greenrobot.eventbus.EventBus;
+
 import javax.inject.Singleton;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
@@ -31,4 +33,5 @@ public interface ApplicationComponent {
     Gson gson();
     OkHttpClient okHttpClient();
     Picasso picasso();
+    EventBus eventBus();
 }

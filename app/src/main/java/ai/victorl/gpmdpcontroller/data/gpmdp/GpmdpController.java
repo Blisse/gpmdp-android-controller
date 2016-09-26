@@ -20,4 +20,10 @@ public interface GpmdpController {
     void forward();
 
     void rewind();
+
+    void getCurrentTime();
+
+    void setCurrentTime(int ms);
+
+    void getPlaybackState();
 }

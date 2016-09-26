@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponse;
+
 public class QueueResponse extends GpmdpResponse {
     @SerializedName("payload")
     public List<Track> queue;

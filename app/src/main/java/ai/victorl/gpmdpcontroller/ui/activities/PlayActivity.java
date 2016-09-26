@@ -1,11 +1,17 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,14 +26,13 @@ import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Rating;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Repeat;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Shuffle;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
+import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindColor;
@@ -68,15 +73,6 @@ public class PlayActivity extends BaseActivity {
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
         gpmdpController.playPause();
-//        musicCoverView.stop();
-//        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-//                new Pair<>((View) musicCoverView, ViewCompat.getTransitionName(musicCoverView)),
-//                new Pair<>((View) titleView, ViewCompat.getTransitionName(titleView)),
-//                new Pair<>((View) timeTextView, ViewCompat.getTransitionName(timeTextView)),
-//                new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
-//                new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)),
-//                new Pair<>((View) playPauseFab, ViewCompat.getTransitionName(playPauseFab)));
-//        Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), options.toBundle());
     }
 
     @OnClick(R.id.previous)
@@ -115,6 +111,46 @@ public class PlayActivity extends BaseActivity {
     protected void onPostInflate() {
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        musicCoverView.setCallbacks(new MusicCoverView.Callbacks() {
+            @Override
+            public void onMorphEnd(MusicCoverView coverView) {
+                gpmdpController.getPlaybackState();
+            }
+
+            @Override
+            public void onRotateEnd(MusicCoverView coverView) {
+                gpmdpController.getPlaybackState();
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.play_menu, menu);
+        return true;
+    }
+
+    private boolean navigateToQueue() {
+        musicCoverView.stop();
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                new Pair<>((View) musicCoverView, ViewCompat.getTransitionName(musicCoverView)),
+                new Pair<>((View) titleView, ViewCompat.getTransitionName(titleView)),
+                new Pair<>((View) timeTextView, ViewCompat.getTransitionName(timeTextView)),
+                new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
+                new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)),
+                new Pair<>((View) playPauseFab, ViewCompat.getTransitionName(playPauseFab)));
+        return Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), options.toBundle());
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_queue:
+                return navigateToQueue();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -123,21 +159,19 @@ public class PlayActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(TrackResponse response) {
-        Track trackInfo = response.trackPayload;
-        trackTitleTextView.setText(trackInfo.title);
-        trackArtistTextView.setText(trackInfo.artist);
-        picasso.load(trackInfo.albumArt)
+    public void onEvent(Track track) {
+        trackTitleTextView.setText(track.title);
+        trackArtistTextView.setText(track.artist);
+        picasso.load(track.albumArt)
                 .fit()
                 .centerCrop()
                 .into(musicCoverView);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(TimeResponse response) {
-        Time timeInfo = response.timePayload;
-        int currentSeconds = timeInfo.current / 1000;
-        int totalSeconds = timeInfo.total / 1000;
+    public void onEvent(Time trackTime) {
+        int currentSeconds = trackTime.current / 1000;
+        int totalSeconds = trackTime.total / 1000;
 
         timeTextView.setText(DateUtils.formatElapsedTime(currentSeconds));
         durationTextView.setText(DateUtils.formatElapsedTime(totalSeconds));
@@ -148,8 +182,8 @@ public class PlayActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(RepeatResponse response) {
-        switch (response.repeat) {
+    public void onEvent(Repeat repeat) {
+        switch (repeat) {
             case NO_REPEAT:
                 repeatImageView.setImageDrawable(repeatWhiteDrawable);
                 repeatImageView.getDrawable().setColorFilter(whiteColor, PorterDuff.Mode.MULTIPLY);
@@ -166,8 +200,8 @@ public class PlayActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(ShuffleResponse response) {
-        switch (response.shuffle) {
+    public void onEvent(Shuffle shuffle) {
+        switch (shuffle) {
             case ALL_SHUFFLE:
                 shuffleImageView.getDrawable().setColorFilter(accentColor, PorterDuff.Mode.MULTIPLY);
                 break;
@@ -178,15 +212,19 @@ public class PlayActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(RatingResponse response) {
+    public void onEvent(Rating rating) {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(PlayStateResponse response) {
-        if (response.playState) {
-            musicCoverView.start();
-        } else {
-            musicCoverView.stop();
+    public void onEvent(PlaybackState playbackState) {
+        switch (playbackState) {
+            case STOPPED:
+            case PAUSED:
+                musicCoverView.stop();
+                break;
+            case PLAYING:
+                musicCoverView.start();
+                break;
         }
     }
 }

@@ -1,10 +1,11 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp.api.requests;
 
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
 import ai.victorl.gpmdpcontroller.utils.StringUtils;
 
 public class ConnectRequest extends GpmdpRequest {
     protected ConnectRequest() {
-        super("connect", "connect");
+        super("connect", "connect", null);
     }
 
     public static class Factory {

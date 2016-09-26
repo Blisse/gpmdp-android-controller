@@ -1,4 +1,4 @@
-package ai.victorl.gpmdpcontroller.data.gpmdp.api.responses;
+package ai.victorl.gpmdpcontroller.data.gpmdp.api;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -10,7 +10,21 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GpmdpDeserializer implements JsonDeserializer<GpmdpResponse> {
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Channel;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LyricsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaylistsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SearchResultsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
+
+public class GpmdpResponseDeserializer implements JsonDeserializer<GpmdpResponse> {
     private static final Map<Channel, Class> channelResponseMap = new HashMap<>();
 
     static {
