@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,10 @@ import butterknife.ButterKnife;
 public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHolder> {
     @Inject Picasso picasso;
 
+    private final EventBus playlistEventBus = EventBus.builder()
+            .logNoSubscriberMessages(true)
+            .logSubscriberExceptions(true)
+            .build();
     private final List<Track> tracks = new ArrayList<>();
     private int activePosition = -1;
 
@@ -36,7 +42,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     public void setTracks(List<Track> tracks) {
         this.tracks.clear();
         this.tracks.addAll(tracks);
-        this.notifyDataSetChanged();
+        notifyDataSetChanged();
     }
 
     public void setCurrentTrack(Track currentTrack) {
@@ -58,6 +64,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         return activePosition;
     }
 
+    public EventBus getEventBus() {
+        return playlistEventBus;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
@@ -67,7 +77,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        Track track = tracks.get(position);
+        final Track track = tracks.get(position);
         picasso.load(track.albumArt)
                 .fit()
                 .into(holder.coverImageView);
@@ -78,6 +88,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                getEventBus().post(new PlaylistOnClickEvent(tracks.get(holder.getAdapterPosition())));
             }
         });
 
@@ -109,6 +120,14 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
             } else {
                 rootView.setBackgroundColor(inactiveColor);
             }
+        }
+    }
+
+    public static class PlaylistOnClickEvent {
+        public Track selectedTrack;
+
+        public PlaylistOnClickEvent(Track track) {
+            selectedTrack = track;
         }
     }
 }

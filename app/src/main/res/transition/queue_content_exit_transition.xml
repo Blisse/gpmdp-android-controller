@@ -5,13 +5,13 @@
 
     <fade>
         <targets>
-            <target android:targetId="@id/pane" />
+            <target android:targetId="@id/toolbar" />
         </targets>
     </fade>
     <slide android:slideEdge="bottom">
         <targets>
             <target android:excludeId="@android:id/statusBarBackground" />
-            <target android:excludeId="@id/pane" />
+            <target android:excludeId="@id/toolbar" />
             <target android:excludeId="@android:id/navigationBarBackground" />
         </targets>
     </slide>

@@ -39,7 +39,6 @@ public class ConnectActivity extends BaseActivity {
         setContentView(R.layout.activity_connect);
 
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
-
         gpmdpController.connect();
     }
 

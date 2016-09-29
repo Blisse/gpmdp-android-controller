@@ -21,11 +21,14 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequestResponseCallback;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.ConnectRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PlaybackRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PlaylistsRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.QueueRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LyricsResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Playlist;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaylistsResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
@@ -33,6 +36,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SearchResultsResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
@@ -132,8 +136,23 @@ public class GpmdpService implements GpmdpController {
     }
 
     @Override
+    public void getCurrentTime() {
+        sendRequest(PlaybackRequest.Factory.getCurrentTimeRequest());
+    }
+
+    @Override
+    public void setCurrentTime(int ms) {
+        sendRequest(PlaybackRequest.Factory.setCurrentTimeRequest(ms));
+    }
+
+    @Override
     public void playPause() {
         sendRequest(PlaybackRequest.Factory.playPauseRequest());
+    }
+
+    @Override
+    public void getPlaybackState() {
+        sendRequest(PlaybackRequest.Factory.getPlaybackStateRequest());
     }
 
     @Override
@@ -147,18 +166,48 @@ public class GpmdpService implements GpmdpController {
     }
 
     @Override
-    public void getCurrentTime() {
-        sendRequest(PlaybackRequest.Factory.getCurrentTimeRequest());
+    public void getShuffle() {
+        sendRequest(PlaybackRequest.Factory.getShuffleRequest());
     }
 
     @Override
-    public void setCurrentTime(int ms) {
-        sendRequest(PlaybackRequest.Factory.setCurrentTimeRequest(ms));
+    public void toggleShuffle() {
+        sendRequest(PlaybackRequest.Factory.toggleShuffleRequest());
     }
 
     @Override
-    public void getPlaybackState() {
-        sendRequest(PlaybackRequest.Factory.getPlaybackStateRequest());
+    public void getRepeat() {
+        sendRequest(PlaybackRequest.Factory.getRepeatRequest());
+    }
+
+    @Override
+    public void toggleRepeat() {
+        sendRequest(PlaybackRequest.Factory.toggleRepeatRequest());
+    }
+
+    @Override
+    public void getQueue() {
+        sendRequest(QueueRequest.Factory.getTracksRequest());
+    }
+
+    @Override
+    public void playQueueWithTrack(Track track) {
+        sendRequest(QueueRequest.Factory.playTrackRequest(track));
+    }
+
+    @Override
+    public void getAllPlaylists() {
+        sendRequest(PlaylistsRequest.Factory.getAllPlaylistsRequest());
+    }
+
+    @Override
+    public void playPlaylist(Playlist playlist) {
+        sendRequest(PlaylistsRequest.Factory.playRequest(playlist));
+    }
+
+    @Override
+    public void playPlaylistWithTrack(Playlist playlist, Track track) {
+        sendRequest(PlaylistsRequest.Factory.playWithTrackRequest(playlist, track));
     }
 
     private void onRequestResponse(String text) {

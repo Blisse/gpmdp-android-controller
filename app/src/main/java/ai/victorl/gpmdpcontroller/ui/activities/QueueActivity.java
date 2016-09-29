@@ -1,18 +1,16 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
-import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.andremion.music.MusicCoverView;
 import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -29,9 +27,9 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
-import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
+import butterknife.BindDrawable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -40,7 +38,8 @@ public class QueueActivity extends BaseActivity {
     @Inject GpmdpController gpmdpController;
     @Inject Picasso picasso;
 
-    @BindView(R.id.cover) MusicCoverView musicCoverView;
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.cover) ImageView musicCoverView;
     @BindView(R.id.title) View titleView;
     @BindView(R.id.track_title) TextView trackTitleTextView;
     @BindView(R.id.track_artist) TextView trackArtistTextView;
@@ -52,18 +51,20 @@ public class QueueActivity extends BaseActivity {
     @BindView(R.id.counter) TextView playlistCounterTextView;
     @BindView(R.id.tracks) RecyclerView tracksRecyclerView;
 
-    @OnClick(R.id.fab)
-    public void onFabClick(View view) {
-        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                new Pair<>((View) musicCoverView, ViewCompat.getTransitionName(musicCoverView)),
-                new Pair<>((View) titleView, ViewCompat.getTransitionName(titleView)),
-                new Pair<>((View) timeTextView, ViewCompat.getTransitionName(timeTextView)),
-                new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
-                new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)),
-                new Pair<>((View) playPauseFab, ViewCompat.getTransitionName(playPauseFab)));
-        Intents.maybeStartActivity(this, new Intent(this, PlayActivity.class), options.toBundle());
+    @BindDrawable(R.drawable.ic_pause_animatable) Drawable pauseAnimatable;
+    @BindDrawable(R.drawable.ic_play_animatable) Drawable playAnimatable;
+
+    @Override
+    public void onBackPressed() {
+        supportFinishAfterTransition();
     }
 
+    @OnClick(R.id.fab)
+    public void onFabClick(View view) {
+        gpmdpController.playPause();
+    }
+
+    private LinearLayoutManager playlistLinearLayoutManager;
     private PlaylistAdapter playlistAdapter;
 
     @Override
@@ -80,6 +81,7 @@ public class QueueActivity extends BaseActivity {
         super.onDestroy();
 
         EventBusUtils.safeUnregister(gpmdpController.getEventBus(), this);
+        EventBusUtils.safeUnregister(playlistAdapter.getEventBus(), this);
     }
 
     @Override
@@ -90,15 +92,28 @@ public class QueueActivity extends BaseActivity {
     @Override
     void onPostInflate() {
         ButterKnife.bind(this);
-        tracksRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setSupportActionBar(toolbar);
+
+        tracksRecyclerView.setHasFixedSize(true);
+
+        playlistLinearLayoutManager = new LinearLayoutManager(this);
+        tracksRecyclerView.setLayoutManager(playlistLinearLayoutManager);
 
         playlistAdapter = new PlaylistAdapter(this);
         tracksRecyclerView.setAdapter(playlistAdapter);
+        EventBusUtils.safeRegister(playlistAdapter.getEventBus(), this);
     }
 
     @Override
     String getClassName() {
         return QueueActivity.class.getSimpleName();
+    }
+
+    private void updateCurrentTrack(Track track) {
+        playlistAdapter.setCurrentTrack(track);
+        if (playlistAdapter.getCurrentTrackIndex() != -1) {
+            playlistLinearLayoutManager.scrollToPositionWithOffset(playlistAdapter.getCurrentTrackIndex(), 0);
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -109,10 +124,7 @@ public class QueueActivity extends BaseActivity {
                 .fit()
                 .centerCrop()
                 .into(musicCoverView);
-        playlistAdapter.setCurrentTrack(track);
-        if (playlistAdapter.getCurrentTrackIndex() != -1) {
-            tracksRecyclerView.smoothScrollToPosition(playlistAdapter.getCurrentTrackIndex());
-        }
+        updateCurrentTrack(track);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -138,10 +150,7 @@ public class QueueActivity extends BaseActivity {
         for (Track track : queue) {
             if (track.title.equals(trackTitleTextView.getText())
                     && track.artist.equals(trackArtistTextView.getText())) {
-                playlistAdapter.setCurrentTrack(track);
-                if (playlistAdapter.getCurrentTrackIndex() != -1) {
-                    tracksRecyclerView.smoothScrollToPosition(playlistAdapter.getCurrentTrackIndex());
-                }
+                updateCurrentTrack(track);
                 break;
             }
         }
@@ -152,9 +161,16 @@ public class QueueActivity extends BaseActivity {
         switch (playbackState) {
             case STOPPED:
             case PAUSED:
+                playPauseFab.setImageDrawable(pauseAnimatable);
                 break;
             case PLAYING:
+                playPauseFab.setImageDrawable(playAnimatable);
                 break;
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(PlaylistAdapter.PlaylistOnClickEvent event) {
+        gpmdpController.playQueueWithTrack(event.selectedTrack);
     }
 }

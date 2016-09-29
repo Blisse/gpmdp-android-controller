@@ -7,6 +7,8 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequestResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequestResponseCallback;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Repeat;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Shuffle;
 
 public class PlaybackRequest extends GpmdpRequest {
     protected PlaybackRequest(String method, GpmdpRequestResponseCallback callback) {
@@ -33,10 +35,24 @@ public class PlaybackRequest extends GpmdpRequest {
             });
         }
 
-        public static PlaybackRequest setCurrentTimeRequest(int ms) {
-            PlaybackRequest request = new PlaybackRequest("setCurrentTime");
-            request.arguments.add(ms);
-            return request;
+        public static GpmdpRequest setCurrentTimeRequest(int ms) {
+            return new PlaybackRequest("setCurrentTime")
+                    .withArgument(ms);
+        }
+
+        public static PlaybackRequest getTotalTimeRequest() {
+            return new PlaybackRequest("getTotalTime", new GpmdpRequestResponseCallback() {
+                @Override
+                public void onSuccess(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+                    state.trackTime.total = (Integer) requestResponse.value;
+                    eventBus.post(state.trackTime);
+                }
+
+                @Override
+                public void onError(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+
+                }
+            });
         }
 
         public static PlaybackRequest playPauseRequest() {
@@ -64,6 +80,44 @@ public class PlaybackRequest extends GpmdpRequest {
 
         public static PlaybackRequest rewindRequest() {
             return new PlaybackRequest("rewind");
+        }
+
+        public static PlaybackRequest getShuffleRequest() {
+            return new PlaybackRequest("getShuffle", new GpmdpRequestResponseCallback() {
+                @Override
+                public void onSuccess(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+                    state.shuffle = Shuffle.valueOf((String) requestResponse.value);
+                    eventBus.post(state.shuffle);
+                }
+
+                @Override
+                public void onError(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+
+                }
+            });
+        }
+
+        public static PlaybackRequest toggleShuffleRequest() {
+            return new PlaybackRequest("toggleShuffle");
+        }
+
+        public static PlaybackRequest getRepeatRequest() {
+            return new PlaybackRequest("getRepeat", new GpmdpRequestResponseCallback() {
+                @Override
+                public void onSuccess(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+                    state.repeat = Repeat.valueOf((String) requestResponse.value);
+                    eventBus.post(state.repeat);
+                }
+
+                @Override
+                public void onError(GpmdpRequestResponse requestResponse, GpmdpState state, EventBus eventBus) {
+
+                }
+            });
+        }
+
+        public static PlaybackRequest toggleRepeatRequest() {
+            return new PlaybackRequest("toggleRepeat");
         }
     }
 }

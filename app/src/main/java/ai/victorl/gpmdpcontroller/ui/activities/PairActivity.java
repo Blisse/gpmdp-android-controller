@@ -33,12 +33,16 @@ public class PairActivity extends BaseActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        Intents.maybeStartActivity(this, new Intent(this, ConnectActivity.class));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pair);
 
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
-
         gpmdpController.tryAuthorize();
     }
 
@@ -75,6 +79,7 @@ public class PairActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(GpmdpAuthorizedEvent event) {
-        Intents.maybeStartActivity(this, new Intent(this, PlayActivity.class));
+        Intents.maybeStartActivity(this, new Intent(this, PlayActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     }
 }

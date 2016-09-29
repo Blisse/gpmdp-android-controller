@@ -32,7 +32,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-
     <com.andremion.music.MusicCoverView
         android:id="@+id/cover"
         android:layout_width="match_parent"

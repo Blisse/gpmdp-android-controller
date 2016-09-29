@@ -19,6 +19,11 @@ public abstract class GpmdpRequest {
         this.callback = callback;
     }
 
+    public GpmdpRequest withArgument(Object object) {
+        this.arguments.add(object);
+        return this;
+    }
+
     public static Integer getRequestId() {
         return REQUEST_ID++;
     }

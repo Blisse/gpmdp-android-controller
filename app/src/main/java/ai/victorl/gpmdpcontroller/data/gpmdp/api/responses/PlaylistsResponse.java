@@ -8,5 +8,5 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponse;
 
 public class PlaylistsResponse extends GpmdpResponse {
     @SerializedName("payload")
-    public List<Playlist> playlistsPayload;
+    public List<Playlist> playlists;
 }

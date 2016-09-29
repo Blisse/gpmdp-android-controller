@@ -9,24 +9,21 @@ public class ConnectRequest extends GpmdpRequest {
     }
 
     public static class Factory {
-        public static ConnectRequest buildPairRequest() {
-            ConnectRequest request = new ConnectRequest();
-            request.arguments.add(StringUtils.getDeviceName());
-            return request;
+        public static GpmdpRequest buildPairRequest() {
+            return new ConnectRequest()
+                    .withArgument(StringUtils.getDeviceName());
         }
 
-        public static ConnectRequest buildPinRequest(String pin) {
-            ConnectRequest request = new ConnectRequest();
-            request.arguments.add(StringUtils.getDeviceName());
-            request.arguments.add(pin);
-            return request;
+        public static GpmdpRequest buildPinRequest(String pin) {
+            return new ConnectRequest()
+                    .withArgument(StringUtils.getDeviceName())
+                    .withArgument(pin);
         }
 
-        public static ConnectRequest buildAuthRequest(String authCode) {
-            ConnectRequest request = new ConnectRequest();
-            request.arguments.add(StringUtils.getDeviceName());
-            request.arguments.add(authCode);
-            return request;
+        public static GpmdpRequest buildAuthRequest(String authCode) {
+            return new ConnectRequest()
+                    .withArgument(StringUtils.getDeviceName())
+                    .withArgument(authCode);
         }
     }
 }

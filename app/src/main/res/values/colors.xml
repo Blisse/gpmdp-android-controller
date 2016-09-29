@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="transparent_white">#33C2CAC9</color>
+    <color name="transparent_tint">#66000000</color>
 
     <color name="rock">#547980</color>
     <color name="slate">#556270</color>
-
     <color name="pacifica">#4ECDC4</color>
     <color name="apple">#C7F464</color>
     <color name="cherry">#FF6B6B</color>

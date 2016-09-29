@@ -61,14 +61,11 @@ public class PlayActivity extends BaseActivity {
 
     @BindDrawable(R.drawable.ic_repeat_white_24dp) Drawable repeatWhiteDrawable;
     @BindDrawable(R.drawable.ic_repeat_one_white_24dp) Drawable repeatOneWhiteDrawable;
+    @BindDrawable(R.drawable.ic_pause_animatable) Drawable pauseAnimatable;
+    @BindDrawable(R.drawable.ic_play_animatable) Drawable playAnimatable;
 
     @BindColor(R.color.pacifica) int accentColor;
     @BindColor(android.R.color.white) int whiteColor;
-
-    @Override
-    public void onBackPressed() {
-        onFabClick(null);
-    }
 
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
@@ -83,6 +80,16 @@ public class PlayActivity extends BaseActivity {
     @OnClick(R.id.next)
     public void onClickNext(View view) {
         gpmdpController.forward();
+    }
+
+    @OnClick(R.id.shuffle)
+    public void onClickShuffle(View view) {
+        gpmdpController.toggleShuffle();
+    }
+
+    @OnClick(R.id.repeat)
+    public void onClickRepeat(View view) {
+        gpmdpController.toggleRepeat();
     }
 
     @Override
@@ -206,7 +213,7 @@ public class PlayActivity extends BaseActivity {
                 shuffleImageView.getDrawable().setColorFilter(accentColor, PorterDuff.Mode.MULTIPLY);
                 break;
             case NO_SHUFFLE:
-                repeatImageView.getDrawable().setColorFilter(whiteColor, PorterDuff.Mode.MULTIPLY);
+                shuffleImageView.getDrawable().setColorFilter(whiteColor, PorterDuff.Mode.MULTIPLY);
                 break;
         }
     }
@@ -220,9 +227,11 @@ public class PlayActivity extends BaseActivity {
         switch (playbackState) {
             case STOPPED:
             case PAUSED:
+                playPauseFab.setImageDrawable(pauseAnimatable);
                 musicCoverView.stop();
                 break;
             case PLAYING:
+                playPauseFab.setImageDrawable(playAnimatable);
                 musicCoverView.start();
                 break;
         }

@@ -15,17 +15,20 @@
         <activity
             android:name=".ui.activities.ConnectActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.PairActivity"/>
+        <activity
+            android:name=".ui.activities.PairActivity"
+            android:noHistory="true"/>
         <activity
             android:name=".ui.activities.PlayActivity"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.Play"/>
         <activity
             android:name=".ui.activities.QueueActivity"
