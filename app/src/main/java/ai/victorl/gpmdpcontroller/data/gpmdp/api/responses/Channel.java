@@ -37,7 +37,19 @@ public enum Channel {
     QUEUE("queue"),
 
     @SerializedName("search-results")
-    SEARCH_RESULTS("search-results");
+    SEARCH_RESULTS("search-results"),
+
+    @SerializedName("settings:theme")
+    SETTINGS_THEME("settings:theme"),
+
+    @SerializedName("settings:themeType")
+    SETTINGS_THEMETYPE("settings:themeType"),
+
+    @SerializedName("settings:themeColor")
+    SETTINGS_THEMECOLOR("settings:themeColor"),
+
+    @SerializedName("library")
+    LIBRARY("library");
 
     public String value;
     Channel(String channel) {
@@ -50,6 +62,6 @@ public enum Channel {
                 return channel;
             }
         }
-        throw new IllegalArgumentException("No Channel with value " + value + "found.");
+        throw new IllegalArgumentException("No Channel with value " + value + " found.");
     }
 }

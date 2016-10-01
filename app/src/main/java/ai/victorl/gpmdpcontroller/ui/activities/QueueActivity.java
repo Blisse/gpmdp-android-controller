@@ -1,5 +1,6 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -26,7 +27,9 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
+import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import butterknife.BindDrawable;
@@ -51,8 +54,9 @@ public class QueueActivity extends BaseActivity {
     @BindView(R.id.counter) TextView playlistCounterTextView;
     @BindView(R.id.tracks) RecyclerView tracksRecyclerView;
 
-    @BindDrawable(R.drawable.ic_pause_animatable) Drawable pauseAnimatable;
-    @BindDrawable(R.drawable.ic_play_animatable) Drawable playAnimatable;
+    @BindDrawable(R.drawable.ic_pause_white_24dp) Drawable pauseDrawable;
+    @BindDrawable(R.drawable.ic_play_arrow_white_24dp) Drawable playDrawable;
+    @BindDrawable(R.drawable.ic_stop_white_24dp) Drawable stopDrawable;
 
     @Override
     public void onBackPressed() {
@@ -160,11 +164,13 @@ public class QueueActivity extends BaseActivity {
     public void onEvent(PlaybackState playbackState) {
         switch (playbackState) {
             case STOPPED:
+                playPauseFab.setImageDrawable(stopDrawable);
+                break;
             case PAUSED:
-                playPauseFab.setImageDrawable(pauseAnimatable);
+                playPauseFab.setImageDrawable(pauseDrawable);
                 break;
             case PLAYING:
-                playPauseFab.setImageDrawable(playAnimatable);
+                playPauseFab.setImageDrawable(playDrawable);
                 break;
         }
     }
@@ -172,5 +178,15 @@ public class QueueActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(PlaylistAdapter.PlaylistOnClickEvent event) {
         gpmdpController.playQueueWithTrack(event.selectedTrack);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(GpmdpStateChangedEvent event) {
+        switch (event.state) {
+            case CLOSED:
+                Intents.maybeStartActivity(this, new Intent(this, ConnectActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                break;
+        }
     }
 }

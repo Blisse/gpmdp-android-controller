@@ -13,6 +13,7 @@ import java.util.Map;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Channel;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LibraryResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LyricsResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlayStateResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaylistsResponse;
@@ -20,6 +21,9 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RatingResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.RepeatResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SearchResultsResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SettingsThemeColorResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SettingsThemeResponse;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.SettingsThemeTypeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ShuffleResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TimeResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
@@ -40,6 +44,10 @@ public class GpmdpResponseDeserializer implements JsonDeserializer<GpmdpResponse
         channelResponseMap.put(Channel.SHUFFLE, ShuffleResponse.class);
         channelResponseMap.put(Channel.TIME, TimeResponse.class);
         channelResponseMap.put(Channel.TRACK, TrackResponse.class);
+        channelResponseMap.put(Channel.SETTINGS_THEME, SettingsThemeResponse.class);
+        channelResponseMap.put(Channel.SETTINGS_THEMETYPE, SettingsThemeTypeResponse.class);
+        channelResponseMap.put(Channel.SETTINGS_THEMECOLOR, SettingsThemeColorResponse.class);
+        channelResponseMap.put(Channel.LIBRARY, LibraryResponse.class);
     }
 
     @Override

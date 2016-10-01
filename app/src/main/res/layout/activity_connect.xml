@@ -29,12 +29,6 @@
             android:layout_height="wrap_content"
             android:text="@string/controller_connect_button_text"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/controller_connect_help_textview"
-            app:layout_widthPercent="70%"/>
-
     </android.support.v7.widget.LinearLayoutCompat>
 
 </RelativeLayout>

@@ -55,7 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:scaleType="center"
-        android:src="@drawable/ic_pause_animatable"
+        android:src="@drawable/ic_stop_white_24dp"
         android:transitionName="@string/transition_name_fab"/>
 
     <Space

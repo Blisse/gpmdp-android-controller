@@ -5,8 +5,11 @@ public class Track {
     public Integer index;
     public String title;
     public String artist;
+    public String artistId;
+    public String artistImage;
     public String album;
     public String albumArt;
+    public String albumArtist;
     public Integer duration;
     public Integer playCount;
 

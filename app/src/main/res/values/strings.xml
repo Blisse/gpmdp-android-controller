@@ -1,9 +1,18 @@
 <resources>
     <string name="app_name">GPMDP Controller</string>
-    <string name="controller_ip_edittext_hint">Enter your GPMDP host IP here</string>
+    <string name="controller_ip_edittext_hint">Enter your Google Play Music Desktop Player host IP here</string>
     <string name="controller_connect_button_text">Connect</string>
-    <string name="controller_connect_help_textview">If connecting does fails, common errors include: Wi-Fi turned off, wrong IP.</string>
-    <string name="controller_pin_edittext_hint">Enter the 4-digit PIN from your Google Play Music Desktop Player</string>
+    <string name="controller_connect_help_textview">
+        If connecting fails:\n
+        \u2022 make sure GPMDP is running\n
+        \u2022 make sure "Enable Playback API" is checked in the GPMDP Desktop Settings\n
+        \u2022 make sure your host firewall has an exception for the GPMDP PlaybackAPI\n
+        \u2022 make sure your device Wi-Fi is turned\n
+        \u2022 make sure you are connected to the same network as GPMDP\n
+        \u2022 make sure you have the correct IP address for your host machine\n
+    </string>
+    <string name="controller_pin_textview_text">Enter the PIN from the GPMDP now</string>
+    <string name="controller_pin_textview_error">Pairing failed, did you enter the right PIN?</string>
     <string name="controller_pair_button_text">Pair</string>
 
     <string name="no_intent_handler">There are no applications available to handle this action.</string>

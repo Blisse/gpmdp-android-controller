@@ -17,9 +17,11 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
+import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnTextChanged;
 
 public class ConnectActivity extends BaseActivity {
     @Inject GpmdpLocalSettings gpmdpLocalSettings;
@@ -27,6 +29,12 @@ public class ConnectActivity extends BaseActivity {
 
     @BindView(R.id.controller_ip_edittext) EditText ipEditText;
     @BindView(R.id.controller_connect_button) Button connectButton;
+    @BindString(R.string.controller_connect_help_textview) String connectHelpString;
+
+    @OnTextChanged(R.id.controller_ip_edittext)
+    void onIpTextChanged(CharSequence s, int start, int before, int count) {
+        gpmdpLocalSettings.saveHostIpAddress(ipEditText.getText().toString());
+    }
 
     @OnClick(R.id.controller_connect_button)
     void onClickConnect(View view) {
@@ -70,6 +78,9 @@ public class ConnectActivity extends BaseActivity {
         switch (event.state) {
             case OPEN:
                 Intents.maybeStartActivity(this, new Intent(this, PairActivity.class));
+                break;
+            case CLOSED:
+                ipEditText.setError(connectHelpString);
                 break;
         }
     }

@@ -137,7 +137,7 @@
         android:layout_marginBottom="@dimen/fab_vertical_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:scaleType="center"
-        android:src="@drawable/ic_play_animatable"
+        android:src="@drawable/ic_stop_white_24dp"
         android:transitionName="@string/transition_name_fab"
         app:layout_anchor="@+id/appbar"
         app:layout_anchorGravity="bottom|right|end"/>

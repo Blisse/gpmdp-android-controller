@@ -47,6 +47,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.google.code.gson:gson:2.7'
+    compile 'me.philio:pinentryview:1.0.6'
     compile 'com.neovisionaries:nv-websocket-client:1.30'
     compile "com.github.andremion:musiccoverview:$MUSICCOVERVIEW_VERSION"
 }

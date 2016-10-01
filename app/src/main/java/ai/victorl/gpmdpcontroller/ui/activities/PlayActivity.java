@@ -32,6 +32,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Repeat;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Shuffle;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
@@ -61,8 +62,9 @@ public class PlayActivity extends BaseActivity {
 
     @BindDrawable(R.drawable.ic_repeat_white_24dp) Drawable repeatWhiteDrawable;
     @BindDrawable(R.drawable.ic_repeat_one_white_24dp) Drawable repeatOneWhiteDrawable;
-    @BindDrawable(R.drawable.ic_pause_animatable) Drawable pauseAnimatable;
-    @BindDrawable(R.drawable.ic_play_animatable) Drawable playAnimatable;
+    @BindDrawable(R.drawable.ic_pause_white_24dp) Drawable pauseDrawable;
+    @BindDrawable(R.drawable.ic_play_arrow_white_24dp) Drawable playDrawable;
+    @BindDrawable(R.drawable.ic_stop_white_24dp) Drawable stopDrawable;
 
     @BindColor(R.color.pacifica) int accentColor;
     @BindColor(android.R.color.white) int whiteColor;
@@ -226,13 +228,26 @@ public class PlayActivity extends BaseActivity {
     public void onEvent(PlaybackState playbackState) {
         switch (playbackState) {
             case STOPPED:
+                playPauseFab.setImageDrawable(stopDrawable);
+                musicCoverView.stop();
+                break;
             case PAUSED:
-                playPauseFab.setImageDrawable(pauseAnimatable);
+                playPauseFab.setImageDrawable(pauseDrawable);
                 musicCoverView.stop();
                 break;
             case PLAYING:
-                playPauseFab.setImageDrawable(playAnimatable);
+                playPauseFab.setImageDrawable(playDrawable);
                 musicCoverView.start();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(GpmdpStateChangedEvent event) {
+        switch (event.state) {
+            case CLOSED:
+                Intents.maybeStartActivity(this, new Intent(this, ConnectActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 break;
         }
     }

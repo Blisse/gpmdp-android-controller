@@ -40,6 +40,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.TrackResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpAuthorizedEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpPairRequestEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import ai.victorl.gpmdpcontroller.utils.NetUtils;
@@ -236,6 +237,8 @@ public class GpmdpService implements GpmdpController {
                     // Received the auth code
                     localSettings.saveAuthCode(connectResponse.requestCode);
                     authorize();
+                } else {
+                    serviceEventBus.post(new GpmdpPairRequestEvent());
                 }
                 break;
             case LYRICS:
@@ -283,18 +286,22 @@ public class GpmdpService implements GpmdpController {
                 serviceEventBus.post(state.currentTrack);
                 break;
             default:
-                Log.d("GPMDP", "could not deserialize response.");
+                Log.d("GPMDP", "Did not handle response.");
                 break;
         }
     }
 
     @Subscribe
     public void onEvent(String text) {
-        JsonObject responseJson = new JsonParser().parse(text).getAsJsonObject();
-        if (responseJson.has("namespace") && responseJson.get("namespace").getAsString().equals("result")) {
-            onRequestResponse(text);
+        if (!TextUtils.isEmpty(text)) {
+            JsonObject responseJson = new JsonParser().parse(text).getAsJsonObject();
+            if (responseJson.has("namespace") && responseJson.get("namespace").getAsString().equals("result")) {
+                onRequestResponse(text);
+            } else {
+                onGpmdpResponse(text);
+            }
         } else {
-            onGpmdpResponse(text);
+
         }
     }
 
@@ -305,6 +312,6 @@ public class GpmdpService implements GpmdpController {
 
     @Subscribe
     public void onEvent(WebSocketState state) {
-        serviceEventBus.post(new GpmdpStateChangedEvent(state));
+        serviceEventBus.postSticky(new GpmdpStateChangedEvent(state));
     }
 }
