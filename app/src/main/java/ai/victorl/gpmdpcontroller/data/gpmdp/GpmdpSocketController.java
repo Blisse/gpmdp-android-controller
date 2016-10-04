@@ -1,5 +1,8 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp;
 
+import android.content.res.Resources;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -12,7 +15,9 @@ import com.neovisionaries.ws.client.WebSocketState;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
@@ -43,24 +48,28 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpPairRequestEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
+import ai.victorl.gpmdpcontroller.utils.MediaIdHelper;
 import ai.victorl.gpmdpcontroller.utils.NetUtils;
 
-public class GpmdpService implements GpmdpController {
-    private static int GPMDP_TIME_DELAY_MS = 500;
+public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvider {
+    private static final int GPMDP_TIME_DELAY_MS = 500;
 
     private final Map<Integer, GpmdpRequestResponseCallback> requestCallbacks = new HashMap<>();
+    private final EventBus serviceEventBus = EventBus.builder()
+            .logNoSubscriberMessages(true)
+            .logSubscriberExceptions(true)
+            .build();
     private final GpmdpLocalSettings localSettings;
     private final Gson gson;
-    private final EventBus serviceEventBus;
+
     private final GpmdpSocket socket = new GpmdpSocket();
     private final GpmdpState state = new GpmdpState();
 
     private long lastTimeResponseMs = 0;
 
-    public GpmdpService(GpmdpLocalSettings localSettings, Gson gson, EventBus eventBus) {
+    public GpmdpSocketController(GpmdpLocalSettings localSettings, Gson gson) {
         this.localSettings = localSettings;
         this.gson = gson;
-        this.serviceEventBus = eventBus;
 
         EventBusUtils.safeRegister(socket.getEventBus(), this);
     }
@@ -300,8 +309,6 @@ public class GpmdpService implements GpmdpController {
             } else {
                 onGpmdpResponse(text);
             }
-        } else {
-
         }
     }
 
@@ -313,5 +320,29 @@ public class GpmdpService implements GpmdpController {
     @Subscribe
     public void onEvent(WebSocketState state) {
         serviceEventBus.postSticky(new GpmdpStateChangedEvent(state));
+    }
+
+    @Override
+    public List<MediaBrowserCompat.MediaItem> getChildren(String mediaId, Resources resources) {
+        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+
+        if (GpmdpMediaProvider.MEDIA_ID_ROOT.equals(mediaId)) {
+            for (Track track : state.queue.queue) {
+                MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MediaIdHelper.createMediaID(track.id))
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, MediaIdHelper.createMediaID(track.title))
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, MediaIdHelper.createMediaID(track.artist))
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, MediaIdHelper.createMediaID(track.album))
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, MediaIdHelper.createMediaID(track.albumArt))
+                        .build();
+                mediaItems.add(createMediaItem(metadata));
+            }
+        }
+
+        return mediaItems;
+    }
+
+    private MediaBrowserCompat.MediaItem createMediaItem(MediaMetadataCompat metadata) {
+        return new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
     }
 }

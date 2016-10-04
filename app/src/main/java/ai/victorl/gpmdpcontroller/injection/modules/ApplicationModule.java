@@ -8,16 +8,15 @@ import com.google.gson.GsonBuilder;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.io.File;
 
 import javax.inject.Singleton;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpService;
+import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpMediaProvider;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSettings;
+import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSocketController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequestSerializer;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpResponse;
@@ -64,9 +63,20 @@ public class ApplicationModule {
     }
 
     @Provides
+    GpmdpSocketController provideGpmdpSocketController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson) {
+        return new GpmdpSocketController(gpmdpLocalSettings, gson);
+    }
+
+    @Provides
     @Singleton
-    GpmdpController provideGpmdpController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson, EventBus eventBus) {
-        return new GpmdpService(gpmdpLocalSettings, gson, eventBus);
+    GpmdpController provideGpmdpController(GpmdpSocketController controller) {
+        return controller;
+    }
+
+    @Provides
+    @Singleton
+    GpmdpMediaProvider provideMediaProvider(GpmdpSocketController controller) {
+        return controller;
     }
 
     @Provides
@@ -91,14 +101,6 @@ public class ApplicationModule {
     Picasso providePicasso(Application app, OkHttpClient client) {
         return new Picasso.Builder(app)
                 .downloader(new OkHttp3Downloader(client))
-                .build();
-    }
-
-    @Provides
-    EventBus provideEventBus() {
-        return EventBus.builder()
-                .logNoSubscriberMessages(true)
-                .logSubscriberExceptions(true)
                 .build();
     }
 }

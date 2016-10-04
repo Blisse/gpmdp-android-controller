@@ -59,6 +59,5 @@ public final class Intents {
     }
 
     private Intents() {
-        throw new AssertionError("No instances.");
     }
 }

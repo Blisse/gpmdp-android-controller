@@ -1,11 +1,16 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
@@ -26,6 +31,7 @@ import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
+import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpMediaService;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Rating;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Repeat;
@@ -69,6 +75,8 @@ public class PlayActivity extends BaseActivity {
     @BindColor(R.color.pacifica) int accentColor;
     @BindColor(android.R.color.white) int whiteColor;
 
+    private MediaBrowserCompat mediaBrowser;
+
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
         gpmdpController.playPause();
@@ -99,6 +107,25 @@ public class PlayActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
+        mediaBrowser = new MediaBrowserCompat(
+                this,
+                new ComponentName(this, GpmdpMediaService.class),
+                new MediaBrowserCompat.ConnectionCallback() {
+                    @Override
+                    public void onConnected() {
+                        super.onConnected();
+                        MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
+                        try {
+                            MediaControllerCompat controller = new MediaControllerCompat(PlayActivity.this, token);
+                            setSupportMediaController(controller);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                null);
+        mediaBrowser.connect();
+
         EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
 
         gpmdpController.requestState();
@@ -107,6 +134,8 @@ public class PlayActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        mediaBrowser.disconnect();
 
         EventBusUtils.safeUnregister(gpmdpController.getEventBus(), this);
     }

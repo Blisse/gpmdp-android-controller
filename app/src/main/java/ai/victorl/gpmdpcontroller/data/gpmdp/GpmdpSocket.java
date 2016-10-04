@@ -11,6 +11,8 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 
+import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
+
 public class GpmdpSocket {
     private static int GPMDP_DEFAULT_PORT = 5672;
     private static int GPMDP_TIMEOUT = 5000;
@@ -71,7 +73,7 @@ public class GpmdpSocket {
         @Override
         public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
             super.onError(websocket, cause);
-            socketEventBus.post(cause.getMessage());
+            socketEventBus.post(new GpmdpErrorEvent(cause));
         }
 
         @Override

@@ -1,14 +1,19 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
+import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.os.RemoteException;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import java.util.UUID;
 
 import ai.victorl.gpmdpcontroller.GpmdpControllerApplication;
+import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpMediaService;
 import ai.victorl.gpmdpcontroller.injection.Injector;
 import ai.victorl.gpmdpcontroller.injection.components.ActivityComponent;
 import ai.victorl.gpmdpcontroller.injection.components.ApplicationComponent;
@@ -20,6 +25,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private ActivityComponent activityComponent;
     private String uniqueKey;
+    private MediaBrowserCompat mediaBrowser;
 
     public ApplicationComponent getApplicationComponent() {
         return GpmdpControllerApplication.get(this).getApplicationComponent();
@@ -44,6 +50,22 @@ public abstract class BaseActivity extends AppCompatActivity {
         } else {
             uniqueKey = UUID.randomUUID().toString();
         }
+
+        mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, GpmdpMediaService.class), mediaBrowserConnectionCallback, null);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mediaBrowser.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        mediaBrowser.disconnect();
     }
 
     @Override
@@ -73,11 +95,27 @@ public abstract class BaseActivity extends AppCompatActivity {
         onPostInflate();
     }
 
+    private MediaBrowserCompat.ConnectionCallback mediaBrowserConnectionCallback = new MediaBrowserCompat.ConnectionCallback() {
+        @Override
+        public void onConnected() {
+            super.onConnected();
+            MediaControllerCompat mediaController = null;
+            try {
+                mediaController = new MediaControllerCompat(BaseActivity.this, mediaBrowser.getSessionToken());
+                setSupportMediaController(mediaController);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
     protected String getUniqueKey() {
         return uniqueKey;
     }
 
     abstract void onPreInflate();
+
     abstract void onPostInflate();
+
     abstract String getClassName();
 }
