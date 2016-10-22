@@ -305,7 +305,7 @@ public class GpmdpSocketController implements GpmdpController {
     public void onEvent(String text) {
         if (!TextUtils.isEmpty(text)) {
             JsonObject responseJson = new JsonParser().parse(text).getAsJsonObject();
-            if (responseJson.has("namespace") && responseJson.get("namespace").getAsString().equals("result")) {
+            if (responseJson.has("namespace") && TextUtils.equals(responseJson.get("namespace").getAsString(), ("result"))) {
                 onRequestResponse(text);
             } else {
                 onGpmdpResponse(text);
