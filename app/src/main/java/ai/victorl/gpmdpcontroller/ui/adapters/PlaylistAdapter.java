@@ -64,6 +64,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         notifyItemChanged(deactivatedPosition);
     }
 
+    public int getActivePosition() {
+        return activePosition;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())

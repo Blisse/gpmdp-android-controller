@@ -117,7 +117,6 @@ public class QueueActivity extends MediaBrowserActivity {
     protected void onMediaBrowserDisconnect() {
         super.onMediaBrowserDisconnect();
 
-
         getSupportMediaController().unregisterCallback(mediaControllerCallback);
     }
 
@@ -136,12 +135,11 @@ public class QueueActivity extends MediaBrowserActivity {
             progressView.setProgress(Long.valueOf(position).intValue());
 
             long queueId = state.getActiveQueueItemId();
-            if (queueId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-                playlistAdapter.setActive(Long.valueOf(queueId).intValue());
-            } else {
-                playlistAdapter.clearActive();
+            if (queueId != MediaSessionCompat.QueueItem.UNKNOWN_ID && queueId != playlistAdapter.getActivePosition()) {
+                int queuePosition = Long.valueOf(queueId).intValue();
+                playlistAdapter.setActive(queuePosition);
+                tracksRecyclerView.smoothScrollToPosition(queuePosition);
             }
-
 
             if (currentPlaybackState != state.getState()) {
                 switch (state.getState()) {

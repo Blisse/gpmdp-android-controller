@@ -7,6 +7,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
@@ -56,7 +57,10 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     private PlaybackState playbackState = PlaybackState.STOPPED;
     private Time currentTrackTime;
     private LyricsResponse currentTrackLyrics;
+
+    private List<Track> queueTracks = new ArrayList<>();
     private List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
+
     private Map<String, List<MediaSessionCompat.QueueItem>> playlists = new HashMap<>();
     private Map<String, MediaDescriptionCompat> playlistDescriptions = new HashMap<>();
 
@@ -117,7 +121,10 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     }
 
     @Override
-    public void play(long queueId) {
+    public void play(int queueId) {
+        if (0 <= queueId && queueId < queueTracks.size()) {
+            gpmdpController.playQueueWithTrack(queueTracks.get(queueId));
+        }
     }
 
     @Override
@@ -288,13 +295,16 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     @Subscribe
     public void onEvent(QueueResponse queueResponse) {
         queue.clear();
+        queueTracks.clear();
 
         for (Track track : queueResponse.queue) {
             String mediaId = MediaIdHelper.createMediaId(track.id, MEDIA_ID_ROOT_QUEUE);
             MediaMetadataCompat mediaMetadata = createMediaMetadata(mediaId, track);
-            MediaSessionCompat.QueueItem item = createQueueItem(mediaMetadata.getDescription(), track.index);
+            MediaSessionCompat.QueueItem item = createQueueItem(mediaMetadata.getDescription(), track.index - 1);
             queue.add(item);
         }
+
+        queueTracks.addAll(queueResponse.queue);
 
         mediaEventBus.post(new QueueEvent(context.getResources().getString(R.string.controller_queue_name), queue));
     }
@@ -309,9 +319,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     public void onEvent(Repeat repeat) {
         gpmdpExtrasBuilder.withRepeat(repeat);
         playbackStateBuilder.setExtras(gpmdpExtrasBuilder.build().getBundle());
-
         playbackStateBuilder.addCustomAction(new RepeatAction(context, repeat).getAction());
-
         mediaEventBus.post(playbackStateBuilder.build());
     }
 
@@ -324,7 +332,6 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     public void onEvent(Shuffle shuffle) {
         gpmdpExtrasBuilder.withShuffle(shuffle);
         playbackStateBuilder.setExtras(gpmdpExtrasBuilder.build().getBundle());
-
         playbackStateBuilder.addCustomAction(new ShuffleAction(context).getAction());
 
         mediaEventBus.post(playbackStateBuilder.build());
@@ -333,13 +340,13 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     @Subscribe
     public void onEvent(Time time) {
         currentTrackTime = time;
-
         playbackStateBuilder.setState(getPlaybackState(), time.current, 1.0f);
         mediaEventBus.post(playbackStateBuilder.build());
     }
 
     @Subscribe
     public void onEvent(Track track) {
+        String trackSubtitle = String.format(Locale.CANADA, "%s - %s", track.artist, track.album);
         String mediaId = MediaIdHelper.createMediaId(track.id);
         mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, mediaId)
                     .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, track.artist)
@@ -348,14 +355,26 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
                     .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, track.albumArtist)
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, track.title)
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, track.title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, String.format(Locale.CANADA, "%s - %s", track.artist, track.album))
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, trackSubtitle)
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, track.albumArt);
 
         if (currentTrackTime != null && currentTrackTime.total != null) {
             mediaMetadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentTrackTime.total);
         }
 
-        mediaEventBus.post(mediaMetadataBuilder.build());
+        MediaMetadataCompat mediaMetadata = mediaMetadataBuilder.build();
+        MediaDescriptionCompat mediaDescription = mediaMetadata.getDescription();
+        mediaEventBus.post(mediaMetadata);
+
+        for (MediaSessionCompat.QueueItem queueItem : queue) {
+            MediaDescriptionCompat description = queueItem.getDescription();
+            if (TextUtils.equals(description.getTitle(), mediaDescription.getTitle())
+                    && TextUtils.equals(description.getSubtitle(), mediaDescription.getSubtitle())) {
+                playbackStateBuilder.setActiveQueueItemId(queueItem.getQueueId());
+                break;
+            }
+        }
+
     }
 
     @Subscribe

@@ -111,7 +111,7 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
         @Override
         public void onSkipToQueueItem(long id) {
             super.onSkipToQueueItem(id);
-            gpmdpMediaProvider.play(id);
+            gpmdpMediaProvider.play(Long.valueOf(id).intValue());
         }
 
         @Override

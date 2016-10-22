@@ -33,7 +33,7 @@ public interface GpmdpMediaController {
      *
      * @param id of queue item to play
      */
-    void play(long id);
+    void play(int id);
 
     /**
      * Toggle the current play state
