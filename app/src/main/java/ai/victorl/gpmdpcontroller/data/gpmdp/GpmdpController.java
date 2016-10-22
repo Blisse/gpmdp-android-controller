@@ -5,18 +5,33 @@ import org.greenrobot.eventbus.EventBus;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Playlist;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 
+/**
+ *
+ */
 public interface GpmdpController {
+    /**
+     *
+     * @return
+     */
     EventBus getEventBus();
 
+    /**
+     *
+     */
     void connect();
 
+    /**
+     *
+     */
     void disconnect();
+
+    boolean connected();
 
     void pin(String authCode);
 
     void tryAuthorize();
 
-    void requestState();
+    void getState();
 
     void getCurrentTime();
 

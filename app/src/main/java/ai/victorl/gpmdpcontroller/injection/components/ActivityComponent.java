@@ -3,7 +3,7 @@ package ai.victorl.gpmdpcontroller.injection.components;
 import android.app.Activity;
 import android.content.Context;
 
-import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpMediaService;
+import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaService;
 import ai.victorl.gpmdpcontroller.injection.modules.ActivityModule;
 import ai.victorl.gpmdpcontroller.injection.scopes.ActivityScope;
 import ai.victorl.gpmdpcontroller.injection.scopes.PerActivity;

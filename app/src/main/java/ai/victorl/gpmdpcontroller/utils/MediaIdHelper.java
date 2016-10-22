@@ -20,7 +20,7 @@ public class MediaIdHelper {
      * Create a String value that represents a playable or a browsable media.
      *
      * Encode the media browseable categories, if any, and the unique music ID, if any,
-     * into a single String mediaID.
+     * into a single String mediaId.
      *
      * MediaIDs are of the form <categoryType>/<categoryValue>|<musicUniqueId>, to make it easy
      * to find the category (like genre) that a music was selected from, so we
@@ -28,11 +28,11 @@ public class MediaIdHelper {
      * one music can appear in more than one list, like "by genre -> genre_1"
      * and "by artist -> artist_1".
 
-     * @param musicID Unique music ID for playable items, or null for browseable items.
+     * @param musicId Unique music ID for playable items, or null for browseable items.
      * @param categories hierarchy of categories representing this item's browsing parents
      * @return a hierarchy-aware media ID
      */
-    public static String createMediaID(String musicID, String... categories) {
+    public static String createMediaId(String musicId, String... categories) {
         StringBuilder sb = new StringBuilder();
         if (categories != null) {
             for (int i=0; i < categories.length; i++) {
@@ -45,8 +45,8 @@ public class MediaIdHelper {
                 }
             }
         }
-        if (musicID != null) {
-            sb.append(LEAF_SEPARATOR).append(musicID);
+        if (musicId != null) {
+            sb.append(LEAF_SEPARATOR).append(musicId);
         }
         return sb.toString();
     }
@@ -60,18 +60,18 @@ public class MediaIdHelper {
     }
 
     /**
-     * Extracts unique musicID from the mediaID. mediaID is, by this sample's convention, a
+     * Extracts unique musicID from the mediaId. mediaId is, by this sample's convention, a
      * concatenation of category (eg "by_genre"), categoryValue (eg "Classical") and unique
      * musicID. This is necessary so we know where the user selected the music from, when the music
      * exists in more than one music list, and thus we are able to correctly build the playing queue.
      *
-     * @param mediaID that contains the musicID
+     * @param mediaId that contains the musicID
      * @return musicID
      */
-    public static String extractMusicIDFromMediaID(@NonNull String mediaID) {
-        int pos = mediaID.indexOf(LEAF_SEPARATOR);
+    public static String extractMusicIdFromMediaId(@NonNull String mediaId) {
+        int pos = mediaId.indexOf(LEAF_SEPARATOR);
         if (pos >= 0) {
-            return mediaID.substring(pos+1);
+            return mediaId.substring(pos+1);
         }
         return null;
     }
@@ -92,27 +92,27 @@ public class MediaIdHelper {
         return mediaId.split(String.valueOf(CATEGORY_SEPARATOR));
     }
 
-    public static String extractBrowseCategoryValueFromMediaID(@NonNull String mediaID) {
-        String[] hierarchy = getHierarchy(mediaID);
+    public static String extractBrowseCategoryValueFromMediaId(@NonNull String mediaId) {
+        String[] hierarchy = getHierarchy(mediaId);
         if (hierarchy.length == 2) {
             return hierarchy[1];
         }
         return null;
     }
 
-    public static boolean isBrowseable(@NonNull String mediaID) {
-        return mediaID.indexOf(LEAF_SEPARATOR) < 0;
+    public static boolean isBrowseable(@NonNull String mediaId) {
+        return mediaId.indexOf(LEAF_SEPARATOR) < 0;
     }
 
-    public static String getParentMediaID(@NonNull String mediaID) {
-        String[] hierarchy = getHierarchy(mediaID);
-        if (!isBrowseable(mediaID)) {
-            return createMediaID(null, hierarchy);
+    public static String getParentMediaID(@NonNull String mediaId) {
+        String[] hierarchy = getHierarchy(mediaId);
+        if (!isBrowseable(mediaId)) {
+            return createMediaId(null, hierarchy);
         }
         if (hierarchy.length <= 1) {
             return MEDIA_ID_ROOT;
         }
         String[] parentHierarchy = Arrays.copyOf(hierarchy, hierarchy.length-1);
-        return createMediaID(null, parentHierarchy);
+        return createMediaId(null, parentHierarchy);
     }
 }

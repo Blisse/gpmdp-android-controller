@@ -50,4 +50,5 @@ dependencies {
     compile 'me.philio:pinentryview:1.0.6'
     compile 'com.neovisionaries:nv-websocket-client:1.30'
     compile "com.github.andremion:musiccoverview:$MUSICCOVERVIEW_VERSION"
+    compile 'com.github.timrijckaert:FloatingMusicActionButton:v2.0.0'
 }

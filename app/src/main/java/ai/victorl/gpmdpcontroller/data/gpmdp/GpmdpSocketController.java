@@ -1,8 +1,5 @@
 package ai.victorl.gpmdpcontroller.data.gpmdp;
 
-import android.content.res.Resources;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,9 +12,7 @@ import com.neovisionaries.ws.client.WebSocketState;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
@@ -48,14 +43,13 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpPairRequestEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
-import ai.victorl.gpmdpcontroller.utils.MediaIdHelper;
 import ai.victorl.gpmdpcontroller.utils.NetUtils;
 
-public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvider {
+public class GpmdpSocketController implements GpmdpController {
     private static final int GPMDP_TIME_DELAY_MS = 500;
 
     private final Map<Integer, GpmdpRequestResponseCallback> requestCallbacks = new HashMap<>();
-    private final EventBus serviceEventBus = EventBus.builder()
+    private final EventBus eventBus = EventBus.builder()
             .logNoSubscriberMessages(true)
             .logSubscriberExceptions(true)
             .build();
@@ -76,7 +70,7 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
 
     @Override
     public EventBus getEventBus() {
-        return serviceEventBus;
+        return eventBus;
     }
 
     @Override
@@ -102,6 +96,11 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
         socket.disconnect();
     }
 
+    @Override
+    public boolean connected() {
+        return socket.isOpen();
+    }
+
     private boolean isAuthorized() {
         return !TextUtils.isEmpty(localSettings.getAuthCode());
     }
@@ -113,7 +112,7 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
     private void authorize() {
         String authCode = localSettings.getAuthCode();
         sendRequest(ConnectRequest.Factory.buildAuthRequest(authCode));
-        serviceEventBus.post(new GpmdpAuthorizedEvent());
+        eventBus.post(new GpmdpAuthorizedEvent());
     }
 
     @Override
@@ -131,18 +130,18 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
     }
 
     @Override
-    public void requestState() {
-        EventBusUtils.safePost(serviceEventBus, state.apiVersion);
-        EventBusUtils.safePost(serviceEventBus, state.currentTrack);
-        EventBusUtils.safePost(serviceEventBus, state.trackLyrics);
-        EventBusUtils.safePost(serviceEventBus, state.trackRating);
-        EventBusUtils.safePost(serviceEventBus, state.trackTime);
-        EventBusUtils.safePost(serviceEventBus, state.playbackState);
-        EventBusUtils.safePost(serviceEventBus, state.repeat);
-        EventBusUtils.safePost(serviceEventBus, state.shuffle);
-        EventBusUtils.safePost(serviceEventBus, state.playlists);
-        EventBusUtils.safePost(serviceEventBus, state.queue);
-        EventBusUtils.safePost(serviceEventBus, state.searchResults);
+    public void getState() {
+        EventBusUtils.safePost(eventBus, state.apiVersion);
+        EventBusUtils.safePost(eventBus, state.searchResults);
+        EventBusUtils.safePost(eventBus, state.playlists);
+        EventBusUtils.safePost(eventBus, state.queue);
+        EventBusUtils.safePost(eventBus, state.repeat);
+        EventBusUtils.safePost(eventBus, state.shuffle);
+        EventBusUtils.safePost(eventBus, state.playbackState);
+        EventBusUtils.safePost(eventBus, state.trackTime);
+        EventBusUtils.safePost(eventBus, state.trackLyrics);
+        EventBusUtils.safePost(eventBus, state.trackRating);
+        EventBusUtils.safePost(eventBus, state.currentTrack);
     }
 
     @Override
@@ -226,9 +225,9 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
         if (requestCallbacks.containsKey(response.requestId)) {
             GpmdpRequestResponseCallback callback = requestCallbacks.get(response.requestId);
             if (response.type.equals("return")) {
-                callback.onSuccess(response, state, serviceEventBus);
+                callback.onSuccess(response, state, eventBus);
             } else {
-                callback.onError(response, state, serviceEventBus);
+                callback.onError(response, state, eventBus);
             }
         }
     }
@@ -238,7 +237,7 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
         switch (response.channel) {
             case API_VERSION:
                 state.apiVersion = (ApiVersionResponse) response;
-                serviceEventBus.post(state.apiVersion);
+                eventBus.post(state.apiVersion);
                 break;
             case CONNECT:
                 ConnectResponse connectResponse = (ConnectResponse) response;
@@ -247,55 +246,57 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
                     localSettings.saveAuthCode(connectResponse.requestCode);
                     authorize();
                 } else {
-                    serviceEventBus.post(new GpmdpPairRequestEvent());
+                    eventBus.post(new GpmdpPairRequestEvent());
                 }
                 break;
             case LYRICS:
                 state.trackLyrics = (LyricsResponse) response;
-                serviceEventBus.post(state.trackLyrics);
+                eventBus.post(state.trackLyrics);
                 break;
             case PLAY_STATE:
                 state.playbackState = ((PlayStateResponse) response).playState
                         ? PlaybackState.PLAYING : PlaybackState.PAUSED;
-                serviceEventBus.post(state.playbackState);
+                eventBus.post(state.playbackState);
                 break;
             case PLAYLISTS:
                 state.playlists = (PlaylistsResponse) response;
-                serviceEventBus.post(state.playlists);
+                eventBus.post(state.playlists);
                 break;
             case QUEUE:
                 state.queue = (QueueResponse) response;
-                serviceEventBus.post(state.queue);
+                eventBus.post(state.queue);
                 break;
             case RATING:
                 state.trackRating = ((RatingResponse) response).ratingPayload;
-                serviceEventBus.post(state.trackRating);
+                eventBus.post(state.trackRating);
                 break;
             case REPEAT:
                 state.repeat = ((RepeatResponse) response).repeat;
-                serviceEventBus.post(state.repeat);
+                eventBus.post(state.repeat);
                 break;
             case SEARCH_RESULTS:
                 state.searchResults = ((SearchResultsResponse) response).searchResultsPayload;
-                serviceEventBus.post(state.searchResults);
+                eventBus.post(state.searchResults);
                 break;
             case SHUFFLE:
                 state.shuffle = ((ShuffleResponse) response).shuffle;
-                serviceEventBus.post(state.shuffle);
+                eventBus.post(state.shuffle);
                 break;
             case TIME:
                 state.trackTime = ((TimeResponse) response).timePayload;
+                state.trackTime.current /= 1000;
+                state.trackTime.total /= 1000;
                 if (System.currentTimeMillis() - lastTimeResponseMs > GPMDP_TIME_DELAY_MS) {
                     lastTimeResponseMs = System.currentTimeMillis();
-                    serviceEventBus.post(state.trackTime);
+                    eventBus.post(state.trackTime);
                 }
                 break;
             case TRACK:
                 state.currentTrack = ((TrackResponse) response).trackPayload;
-                serviceEventBus.post(state.currentTrack);
+                eventBus.post(state.currentTrack);
                 break;
             default:
-                Log.d("GPMDP", "Did not handle response.");
+                Log.d("GPMDP", "Did not handle response with channel: " + response.channel);
                 break;
         }
     }
@@ -314,35 +315,11 @@ public class GpmdpSocketController implements GpmdpController, GpmdpMediaProvide
 
     @Subscribe
     public void onEvent(WebSocketException exception) {
-        serviceEventBus.post(new GpmdpErrorEvent(exception));
+        eventBus.post(new GpmdpErrorEvent(exception));
     }
 
     @Subscribe
     public void onEvent(WebSocketState state) {
-        serviceEventBus.postSticky(new GpmdpStateChangedEvent(state));
-    }
-
-    @Override
-    public List<MediaBrowserCompat.MediaItem> getChildren(String mediaId, Resources resources) {
-        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-
-        if (GpmdpMediaProvider.MEDIA_ID_ROOT.equals(mediaId)) {
-            for (Track track : state.queue.queue) {
-                MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MediaIdHelper.createMediaID(track.id))
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, MediaIdHelper.createMediaID(track.title))
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, MediaIdHelper.createMediaID(track.artist))
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, MediaIdHelper.createMediaID(track.album))
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, MediaIdHelper.createMediaID(track.albumArt))
-                        .build();
-                mediaItems.add(createMediaItem(metadata));
-            }
-        }
-
-        return mediaItems;
-    }
-
-    private MediaBrowserCompat.MediaItem createMediaItem(MediaMetadataCompat metadata) {
-        return new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
+        eventBus.postSticky(new GpmdpStateChangedEvent(state));
     }
 }

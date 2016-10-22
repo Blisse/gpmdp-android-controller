@@ -3,8 +3,8 @@ package ai.victorl.gpmdpcontroller.data.gpmdp;
 import ai.victorl.gpmdpcontroller.data.storage.LocalSettings;
 
 public class GpmdpSettings implements GpmdpLocalSettings {
-    private static final String GPMDP_IPADDRESS_KEY = "GPMDP_IPADDRESS_KEY";
-    private static final String GPMDP_AUTHCODE_KEY = "GPMDP_AUTHCODE_KEY";
+    private static final String GPMDP_IPADDRESS_KEY = "ai.victorl.gpmdpcontroller.KEY_IPADDRESS";
+    private static final String GPMDP_AUTHCODE_KEY = "ai.victorl.gpmdpcontroller.KEY_AUTHCODE";
     private final LocalSettings localSettings;
 
     public GpmdpSettings(LocalSettings localSettings) {

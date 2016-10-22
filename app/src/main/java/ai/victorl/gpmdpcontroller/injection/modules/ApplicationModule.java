@@ -14,7 +14,9 @@ import javax.inject.Singleton;
 
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpLocalSettings;
-import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpMediaProvider;
+import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaController;
+import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaManager;
+import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaProvider;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSettings;
 import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpSocketController;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.GpmdpRequest;
@@ -51,32 +53,31 @@ public class ApplicationModule {
     }
 
     @Provides
-    @Singleton
     LocalSettings provideLocalSettings(@ApplicationScope Context context) {
         return new ApplicationSharedPreferences(context);
     }
 
     @Provides
-    @Singleton
     GpmdpLocalSettings provideGpmdpLocalSettings(LocalSettings localSettings) {
         return new GpmdpSettings(localSettings);
     }
 
     @Provides
-    GpmdpSocketController provideGpmdpSocketController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson) {
+    @Singleton
+    GpmdpController provideGpmdpSocketController(GpmdpLocalSettings gpmdpLocalSettings, Gson gson) {
         return new GpmdpSocketController(gpmdpLocalSettings, gson);
     }
 
     @Provides
     @Singleton
-    GpmdpController provideGpmdpController(GpmdpSocketController controller) {
-        return controller;
+    GpmdpMediaProvider provideMediaProvider(@ApplicationScope Context context, GpmdpController controller) {
+        return new GpmdpMediaManager(context, controller);
     }
 
     @Provides
     @Singleton
-    GpmdpMediaProvider provideMediaProvider(GpmdpSocketController controller) {
-        return controller;
+    GpmdpMediaController provideMediaController(GpmdpMediaProvider mediaProvider) {
+        return mediaProvider;
     }
 
     @Provides

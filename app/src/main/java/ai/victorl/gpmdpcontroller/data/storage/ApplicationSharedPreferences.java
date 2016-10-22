@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class ApplicationSharedPreferences implements LocalSettings {
-    private static final String SHARED_PREFERENCES_NAME = "gpmdpcontroller_prefs";
+    private static final String SHARED_PREFERENCES_NAME = "ai.victorl.gpmdpcontroller.prefs";
 
     private final SharedPreferences preferences;
 

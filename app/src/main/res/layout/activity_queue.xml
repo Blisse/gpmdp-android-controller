@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:expandedTitleMarginStart="48dp"
-            app:layout_scrollFlags="scroll|enterAlways|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|snap|enterAlwaysCollapsed|exitUntilCollapsed">
 
             <ImageView
                 android:id="@+id/cover"
@@ -130,16 +130,15 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/track_item"/>
 
-    <android.support.design.widget.FloatingActionButton
+    <be.rijckaert.tim.animatedvector.FloatingMusicActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/fab_vertical_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        android:scaleType="center"
-        android:src="@drawable/ic_stop_white_24dp"
         android:transitionName="@string/transition_name_fab"
         app:layout_anchor="@+id/appbar"
-        app:layout_anchorGravity="bottom|right|end"/>
+        app:layout_anchorGravity="bottom|right|end"
+        app:mode="stopToPlay"/>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -1,9 +1,12 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -18,27 +21,21 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
-import ai.victorl.gpmdpcontroller.data.gpmdp.GpmdpController;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.PlaybackState;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.QueueResponse;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
-import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
+import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaProvider;
 import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
-import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
-import butterknife.BindDrawable;
+import be.rijckaert.tim.animatedvector.FloatingMusicActionButton;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class QueueActivity extends BaseActivity {
-    @Inject GpmdpController gpmdpController;
+public class QueueActivity extends MediaBrowserActivity {
     @Inject Picasso picasso;
 
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -47,16 +44,14 @@ public class QueueActivity extends BaseActivity {
     @BindView(R.id.track_title) TextView trackTitleTextView;
     @BindView(R.id.track_artist) TextView trackArtistTextView;
     @BindView(R.id.progress) ProgressView progressView;
-    @BindView(R.id.fab) FloatingActionButton playPauseFab;
+    @BindView(R.id.fab) FloatingMusicActionButton musicFab;
     @BindView(R.id.time) TextView timeTextView;
     @BindView(R.id.duration) TextView durationTextView;
     @BindView(R.id.name) TextView playlistNameTextView;
     @BindView(R.id.counter) TextView playlistCounterTextView;
     @BindView(R.id.tracks) RecyclerView tracksRecyclerView;
 
-    @BindDrawable(R.drawable.ic_pause_white_24dp) Drawable pauseDrawable;
-    @BindDrawable(R.drawable.ic_play_arrow_white_24dp) Drawable playDrawable;
-    @BindDrawable(R.drawable.ic_stop_white_24dp) Drawable stopDrawable;
+    private int currentPlaybackState = PlaybackStateCompat.STATE_NONE;
 
     @Override
     public void onBackPressed() {
@@ -65,7 +60,9 @@ public class QueueActivity extends BaseActivity {
 
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
-        gpmdpController.playPause();
+        if (getSupportMediaController() != null) {
+            getSupportMediaController().getTransportControls().play();
+        }
     }
 
     private LinearLayoutManager playlistLinearLayoutManager;
@@ -76,16 +73,18 @@ public class QueueActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_queue);
 
-        EventBusUtils.safeRegister(gpmdpController.getEventBus(), this);
-        gpmdpController.requestState();
+        EventBusUtils.safeRegister(playlistAdapter.getEventBus(), this);
+
+        getMediaBrowser().subscribe(GpmdpMediaProvider.MEDIA_ID_ROOT_QUEUE, mediaBrowserSubscriptionCallback);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        EventBusUtils.safeUnregister(gpmdpController.getEventBus(), this);
         EventBusUtils.safeUnregister(playlistAdapter.getEventBus(), this);
+
+        getMediaBrowser().unsubscribe(GpmdpMediaProvider.MEDIA_ID_ROOT_QUEUE, mediaBrowserSubscriptionCallback);
     }
 
     @Override
@@ -105,7 +104,21 @@ public class QueueActivity extends BaseActivity {
 
         playlistAdapter = new PlaylistAdapter(this);
         tracksRecyclerView.setAdapter(playlistAdapter);
-        EventBusUtils.safeRegister(playlistAdapter.getEventBus(), this);
+    }
+
+    @Override
+    protected void onMediaBrowserConnect() {
+        super.onMediaBrowserConnect();
+
+        getSupportMediaController().registerCallback(mediaControllerCallback);
+    }
+
+    @Override
+    protected void onMediaBrowserDisconnect() {
+        super.onMediaBrowserDisconnect();
+
+
+        getSupportMediaController().unregisterCallback(mediaControllerCallback);
     }
 
     @Override
@@ -113,80 +126,94 @@ public class QueueActivity extends BaseActivity {
         return QueueActivity.class.getSimpleName();
     }
 
-    private void updateCurrentTrack(Track track) {
-        playlistAdapter.setCurrentTrack(track);
-        if (playlistAdapter.getCurrentTrackIndex() != -1) {
-            playlistLinearLayoutManager.scrollToPositionWithOffset(playlistAdapter.getCurrentTrackIndex(), 0);
-        }
-    }
+    private MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            super.onPlaybackStateChanged(state);
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Track track) {
-        trackTitleTextView.setText(track.title);
-        trackArtistTextView.setText(track.artist);
-        picasso.load(track.albumArt)
-                .fit()
-                .centerCrop()
-                .into(musicCoverView);
-        updateCurrentTrack(track);
-    }
+            long position = state.getPosition();
+            timeTextView.setText(DateUtils.formatElapsedTime(position));
+            progressView.setProgress(Long.valueOf(position).intValue());
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Time time) {
-        int currentSeconds = time.current / 1000;
-        int totalSeconds = time.total / 1000;
+            long queueId = state.getActiveQueueItemId();
+            if (queueId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
+                playlistAdapter.setActive(Long.valueOf(queueId).intValue());
+            } else {
+                playlistAdapter.clearActive();
+            }
 
-        timeTextView.setText(DateUtils.formatElapsedTime(currentSeconds));
-        durationTextView.setText(DateUtils.formatElapsedTime(totalSeconds));
-        if (progressView.getMax() != totalSeconds) {
-            progressView.setMax(totalSeconds);
-        }
-        progressView.setProgress(currentSeconds);
-    }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(QueueResponse queueResponse) {
-        List<Track> queue = queueResponse.queue;
-        playlistNameTextView.setText("Queue");
-        playlistCounterTextView.setText(queue.size() + " songs");
-        playlistAdapter.setTracks(queue);
-
-        for (Track track : queue) {
-            if (track.title.equals(trackTitleTextView.getText())
-                    && track.artist.equals(trackArtistTextView.getText())) {
-                updateCurrentTrack(track);
-                break;
+            if (currentPlaybackState != state.getState()) {
+                switch (state.getState()) {
+                    case PlaybackStateCompat.STATE_PAUSED:
+                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+                        break;
+                    case PlaybackStateCompat.STATE_STOPPED:
+                    case PlaybackStateCompat.STATE_NONE:
+                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_STOP);
+                        break;
+                    case PlaybackStateCompat.STATE_PLAYING:
+                        if (currentPlaybackState == PlaybackStateCompat.STATE_PAUSED) {
+                            musicFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
+                        } else {
+                            musicFab.changeMode(FloatingMusicActionButton.Mode.STOP_TO_PLAY);
+                        }
+                        break;
+                    case PlaybackStateCompat.STATE_ERROR:
+                        break;
+                    default:
+                        break;
+                }
+                musicFab.playAnimation();
+                currentPlaybackState = state.getState();
             }
         }
-    }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(PlaybackState playbackState) {
-        switch (playbackState) {
-            case STOPPED:
-                playPauseFab.setImageDrawable(stopDrawable);
-                break;
-            case PAUSED:
-                playPauseFab.setImageDrawable(pauseDrawable);
-                break;
-            case PLAYING:
-                playPauseFab.setImageDrawable(playDrawable);
-                break;
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            super.onMetadataChanged(metadata);
+
+            trackTitleTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE));
+            trackArtistTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE));
+
+            picasso.load(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))
+                    .fit()
+                    .centerCrop()
+                    .into(musicCoverView);
+
+            long duration = metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+            timeTextView.setText(DateUtils.formatElapsedTime(0));
+            durationTextView.setText(DateUtils.formatElapsedTime(duration));
+            progressView.setMax(Long.valueOf(duration).intValue());
         }
-    }
+
+        @Override
+        public void onQueueChanged(List<MediaSessionCompat.QueueItem> queue) {
+            super.onQueueChanged(queue);
+
+            playlistAdapter.setTracks(queue);
+            playlistCounterTextView.setText(String.format(Locale.CANADA, "%d %s", queue.size(), queue.size() == 1 ? "song" : "songs"));
+        }
+
+        @Override
+        public void onQueueTitleChanged(CharSequence title) {
+            super.onQueueTitleChanged(title);
+
+            playlistNameTextView.setText(title);
+        }
+    };
+
+    private MediaBrowserCompat.SubscriptionCallback mediaBrowserSubscriptionCallback = new MediaBrowserCompat.SubscriptionCallback() {
+        @Override
+        public void onChildrenLoaded(@NonNull String parentId, List<MediaBrowserCompat.MediaItem> children) {
+
+        }
+    };
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(PlaylistAdapter.PlaylistOnClickEvent event) {
-        gpmdpController.playQueueWithTrack(event.selectedTrack);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GpmdpStateChangedEvent event) {
-        switch (event.state) {
-            case CLOSED:
-                Intents.maybeStartActivity(this, new Intent(this, ConnectActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                break;
+        if (getSupportMediaController() != null) {
+            getSupportMediaController().getTransportControls().skipToQueueItem(event.selectedTrackId);
         }
     }
 }

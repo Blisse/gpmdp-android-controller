@@ -1,4 +1,4 @@
-package ai.victorl.gpmdpcontroller.data.gpmdp;
+package ai.victorl.gpmdpcontroller.data.media;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -21,11 +21,11 @@ import ai.victorl.gpmdpcontroller.R;
 public class GpmdpMediaNotification extends BroadcastReceiver {
     private static final int NOTIFICATION_ID = 412;
 
-    private static final String ACTION_PAUSE = "ai.victorl.gpmdp_controller.pause";
-    private static final String ACTION_PLAY = "ai.victorl.gpmdp_controller.play";
-    private static final String ACTION_PREVIOUS = "ai.victorl.gpmdp_controller.previous";
-    private static final String ACTION_NEXT = "ai.victorl.gpmdp_controller.next";
-    private static final String ACTION_STOP = "ai.victorl.gpmdp_controller.stop";
+    private static final String ACTION_PAUSE = "ai.victorl.gpmdpcontroller.ACTION_PAUSE";
+    private static final String ACTION_PLAY = "ai.victorl.gpmdpcontroller.ACTION_PLAY";
+    private static final String ACTION_PREVIOUS = "ai.victorl.gpmdpcontroller.ACTION_PREVIOUS";
+    private static final String ACTION_NEXT = "ai.victorl.gpmdpcontroller.ACTION_NEXT";
+    private static final String ACTION_STOP = "ai.victorl.gpmdpcontroller.ACTION_STOP";
 
     private final MediaBrowserServiceCompat mediaBrowserService;
     private final NotificationManagerCompat notificationManager;

@@ -37,7 +37,7 @@
             android:theme="@style/AppTheme.Queue"/>
 
         <service
-            android:name=".data.gpmdp.GpmdpMediaService"
+            android:name=".data.media.GpmdpMediaService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>

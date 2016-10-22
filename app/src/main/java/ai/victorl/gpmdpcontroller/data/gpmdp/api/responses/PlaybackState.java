@@ -18,4 +18,6 @@ public enum PlaybackState {
         }
         throw new IllegalArgumentException("No PlaybackState with value " + value + "found.");
     }
+
+
 }

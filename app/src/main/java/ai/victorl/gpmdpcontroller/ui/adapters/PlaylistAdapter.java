@@ -1,6 +1,8 @@
 package ai.victorl.gpmdpcontroller.ui.adapters;
 
 import android.content.Context;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -19,7 +21,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
-import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.injection.Injector;
 import butterknife.BindColor;
 import butterknife.BindView;
@@ -32,40 +33,35 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
             .logNoSubscriberMessages(true)
             .logSubscriberExceptions(true)
             .build();
-    private final List<Track> tracks = new ArrayList<>();
+    private final List<MediaSessionCompat.QueueItem> tracks = new ArrayList<>();
     private int activePosition = -1;
 
     public PlaylistAdapter(Context context) {
         Injector.activityComponent(context).inject(this);
     }
 
-    public void setTracks(List<Track> tracks) {
+    public EventBus getEventBus() {
+        return playlistEventBus;
+    }
+
+    public void setTracks(List<MediaSessionCompat.QueueItem> tracks) {
         this.tracks.clear();
         this.tracks.addAll(tracks);
         notifyDataSetChanged();
     }
 
-    public void setCurrentTrack(Track currentTrack) {
-        if (currentTrack != null) {
-            notifyItemChanged(activePosition);
-
-            activePosition = -1;
-            for (Track track : tracks) {
-                if (currentTrack.equals(track)) {
-                    activePosition = tracks.indexOf(track);
-                    break;
-                }
-            }
-            notifyItemChanged(activePosition);
+    public void setActive(int activePosition) {
+        if (this.activePosition != activePosition) {
+            notifyItemChanged(this.activePosition);
+            this.activePosition = activePosition;
+            notifyItemChanged(this.activePosition);
         }
     }
 
-    public int getCurrentTrackIndex() {
-        return activePosition;
-    }
-
-    public EventBus getEventBus() {
-        return playlistEventBus;
+    public void clearActive() {
+        int deactivatedPosition = activePosition;
+        activePosition = -1;
+        notifyItemChanged(deactivatedPosition);
     }
 
     @Override
@@ -77,18 +73,19 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final Track track = tracks.get(position);
-        picasso.load(track.albumArt)
+        final MediaSessionCompat.QueueItem queueItem = tracks.get(position);
+        MediaDescriptionCompat description = queueItem.getDescription();
+        picasso.load(description.getIconUri())
                 .fit()
                 .into(holder.coverImageView);
-        holder.titleTextView.setText(track.title);
-        holder.artistTextView.setText(track.artist);
-        holder.durationTextView.setText(DateUtils.formatElapsedTime(track.duration / 1000));
+        holder.titleTextView.setText(description.getTitle());
+        holder.artistTextView.setText(description.getSubtitle());
+        holder.durationTextView.setText(DateUtils.formatElapsedTime(0));
 
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getEventBus().post(new PlaylistOnClickEvent(tracks.get(holder.getAdapterPosition())));
+                getEventBus().post(new PlaylistOnClickEvent(tracks.get(holder.getAdapterPosition()).getQueueId()));
             }
         });
 
@@ -124,10 +121,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     }
 
     public static class PlaylistOnClickEvent {
-        public Track selectedTrack;
+        public Long selectedTrackId;
 
-        public PlaylistOnClickEvent(Track track) {
-            selectedTrack = track;
+        public PlaylistOnClickEvent(Long trackId) {
+            selectedTrackId = trackId;
         }
     }
 }
