@@ -76,4 +76,10 @@ public interface GpmdpMediaController {
      * Toggle repeat
      */
     void toggleRepeat();
+
+    void setVolume(int i);
+
+    void increaseVolume();
+
+    void decreaseVolume();
 }

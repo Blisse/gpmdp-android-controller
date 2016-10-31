@@ -23,6 +23,7 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.ConnectRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PlaybackRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.PlaylistsRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.QueueRequest;
+import ai.victorl.gpmdpcontroller.data.gpmdp.api.requests.VolumeRequest;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ApiVersionResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.ConnectResponse;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.LyricsResponse;
@@ -217,6 +218,21 @@ public class GpmdpSocketController implements GpmdpController {
     @Override
     public void playPlaylistWithTrack(Playlist playlist, Track track) {
         sendRequest(PlaylistsRequest.Factory.playWithTrackRequest(playlist, track));
+    }
+
+    @Override
+    public void setVolume(int volume) {
+        sendRequest(VolumeRequest.Factory.setVolumeRequest(volume));
+    }
+
+    @Override
+    public void increaseVolume() {
+        sendRequest(VolumeRequest.Factory.increaseVolumeRequest());
+    }
+
+    @Override
+    public void decreaseVolume() {
+        sendRequest(VolumeRequest.Factory.decreaseVolumeRequest());
     }
 
     private void onRequestResponse(String text) {

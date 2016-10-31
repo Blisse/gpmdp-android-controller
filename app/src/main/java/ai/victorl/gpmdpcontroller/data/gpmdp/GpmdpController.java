@@ -62,4 +62,10 @@ public interface GpmdpController {
     void playPlaylist(Playlist playlist);
 
     void playPlaylistWithTrack(Playlist playlist, Track track);
+
+    void setVolume(int volume);
+
+    void increaseVolume();
+
+    void decreaseVolume();
 }

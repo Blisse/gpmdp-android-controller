@@ -4,14 +4,12 @@ import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v4.util.Pair;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +25,8 @@ import ai.victorl.gpmdpcontroller.R;
 import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaExtras;
 import ai.victorl.gpmdpcontroller.data.media.actions.RepeatAction;
 import ai.victorl.gpmdpcontroller.data.media.actions.ShuffleAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeDownAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeUpAction;
 import ai.victorl.gpmdpcontroller.ui.views.Intents;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import be.rijckaert.tim.animatedvector.FloatingMusicActionButton;
@@ -159,6 +159,20 @@ public class PlayActivity extends MediaBrowserActivity {
     @Override
     protected String getClassName() {
         return PlayActivity.class.getSimpleName();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // TODO: Fix hack due to https://code.google.com/p/android/issues/detail?id=226670
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            getSupportMediaController().getTransportControls().sendCustomAction(VolumeUpAction.getName(), null);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            getSupportMediaController().getTransportControls().sendCustomAction(VolumeDownAction.getName(), null);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+
     }
 
     private boolean navigateToQueue() {

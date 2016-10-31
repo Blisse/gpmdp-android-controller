@@ -27,6 +27,8 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
 import ai.victorl.gpmdpcontroller.data.media.actions.RefreshAction;
 import ai.victorl.gpmdpcontroller.data.media.actions.RepeatAction;
 import ai.victorl.gpmdpcontroller.data.media.actions.ShuffleAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeDownAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeUpAction;
 import ai.victorl.gpmdpcontroller.data.media.events.QueueEvent;
 import ai.victorl.gpmdpcontroller.injection.Injector;
 import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
@@ -152,6 +154,10 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
                 gpmdpMediaProvider.toggleShuffle();
             } else if (action.equals(RefreshAction.getName())) {
                 gpmdpMediaProvider.getState();
+            } else if (action.equals(VolumeUpAction.getName())) {
+                gpmdpMediaProvider.increaseVolume();
+            } else if (action.equals(VolumeDownAction.getName())) {
+                gpmdpMediaProvider.decreaseVolume();
             }
         }
     };

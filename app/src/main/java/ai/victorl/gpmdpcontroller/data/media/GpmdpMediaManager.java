@@ -40,8 +40,11 @@ import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Time;
 import ai.victorl.gpmdpcontroller.data.gpmdp.api.responses.Track;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpErrorEvent;
 import ai.victorl.gpmdpcontroller.data.gpmdp.events.GpmdpStateChangedEvent;
+import ai.victorl.gpmdpcontroller.data.media.actions.RefreshAction;
 import ai.victorl.gpmdpcontroller.data.media.actions.RepeatAction;
 import ai.victorl.gpmdpcontroller.data.media.actions.ShuffleAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeDownAction;
+import ai.victorl.gpmdpcontroller.data.media.actions.VolumeUpAction;
 import ai.victorl.gpmdpcontroller.data.media.events.QueueEvent;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 import ai.victorl.gpmdpcontroller.utils.MediaIdHelper;
@@ -77,6 +80,12 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     public GpmdpMediaManager(Context context, GpmdpController gpmdpController) {
         this.context = context;
         this.gpmdpController = gpmdpController;
+
+        playbackStateBuilder.addCustomAction(new RefreshAction(context).getAction());
+        playbackStateBuilder.addCustomAction(new RepeatAction(context).getAction());
+        playbackStateBuilder.addCustomAction(new ShuffleAction(context).getAction());
+        playbackStateBuilder.addCustomAction(new VolumeUpAction(context).getAction());
+        playbackStateBuilder.addCustomAction(new VolumeDownAction(context).getAction());
     }
 
     @Override
@@ -171,6 +180,21 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     @Override
     public void toggleRepeat() {
         gpmdpController.toggleRepeat();
+    }
+
+    @Override
+    public void setVolume(int i) {
+        gpmdpController.setVolume(i);
+    }
+
+    @Override
+    public void increaseVolume() {
+        gpmdpController.increaseVolume();
+    }
+
+    @Override
+    public void decreaseVolume() {
+        gpmdpController.decreaseVolume();
     }
 
     @Override
@@ -347,7 +371,6 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     public void onEvent(Repeat repeat) {
         gpmdpExtrasBuilder.withRepeat(repeat);
         playbackStateBuilder.setExtras(gpmdpExtrasBuilder.build().getBundle());
-        playbackStateBuilder.addCustomAction(new RepeatAction(context, repeat).getAction());
         mediaEventBus.post(playbackStateBuilder.build());
     }
 
@@ -360,8 +383,6 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     public void onEvent(Shuffle shuffle) {
         gpmdpExtrasBuilder.withShuffle(shuffle);
         playbackStateBuilder.setExtras(gpmdpExtrasBuilder.build().getBundle());
-        playbackStateBuilder.addCustomAction(new ShuffleAction(context).getAction());
-
         mediaEventBus.post(playbackStateBuilder.build());
     }
 

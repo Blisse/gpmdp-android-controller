@@ -5,15 +5,15 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import ai.victorl.gpmdpcontroller.R;
 
-public class RepeatAction {
-    private static final String GPMDP_ACTION_REPEAT = "ai.victorl.gpmdpcontroller.ACTION_REPEAT";
+public class VolumeDownAction {
+    private static final String GPMDP_ACTION_VOLUMEDOWN = "ai.victorl.gpmdpcontroller.ACTION_VOLUMEDOWN";
 
     private PlaybackStateCompat.CustomAction action;
 
-    public RepeatAction(Context context) {
-        String id = GPMDP_ACTION_REPEAT;
-        String name = context.getResources().getString(R.string.playbackstate_customaction_repeat);
-        int icon = R.drawable.ic_repeat_white_24dp;
+    public VolumeDownAction(Context context) {
+        String id = GPMDP_ACTION_VOLUMEDOWN;
+        String name = context.getResources().getString(R.string.playbackstate_customaction_volumedown);
+        int icon = R.drawable.ic_skip_previous_white_24dp;
         action = new PlaybackStateCompat.CustomAction.Builder(id, name, icon).build();
     }
 
@@ -22,6 +22,6 @@ public class RepeatAction {
     }
 
     public static String getName() {
-        return GPMDP_ACTION_REPEAT;
+        return GPMDP_ACTION_VOLUMEDOWN;
     }
 }

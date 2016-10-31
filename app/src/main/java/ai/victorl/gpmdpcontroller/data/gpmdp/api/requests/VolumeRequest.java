@@ -37,10 +37,18 @@ public class VolumeRequest extends GpmdpRequest {
             return request;
         }
 
+        public static VolumeRequest increaseVolumeRequest() {
+            return new VolumeRequest("increaseVolume");
+        }
+
         public static VolumeRequest increaseVolumeRequest(int volume) {
             VolumeRequest request = new VolumeRequest("increaseVolume");
             request.arguments.add(volume);
             return request;
+        }
+
+        public static VolumeRequest decreaseVolumeRequest() {
+            return new VolumeRequest("decreaseVolume");
         }
 
         public static VolumeRequest decreaseVolumeRequest(int volume) {
