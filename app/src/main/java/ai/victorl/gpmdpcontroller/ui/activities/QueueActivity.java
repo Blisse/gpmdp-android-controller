@@ -1,8 +1,6 @@
 package ai.victorl.gpmdpcontroller.ui.activities;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -26,7 +24,6 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 import ai.victorl.gpmdpcontroller.R;
-import ai.victorl.gpmdpcontroller.data.media.GpmdpMediaProvider;
 import ai.victorl.gpmdpcontroller.ui.adapters.PlaylistAdapter;
 import ai.victorl.gpmdpcontroller.ui.views.ProgressView;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
@@ -53,11 +50,6 @@ public class QueueActivity extends MediaBrowserActivity {
 
     private int currentPlaybackState = PlaybackStateCompat.STATE_NONE;
 
-    @Override
-    public void onBackPressed() {
-        supportFinishAfterTransition();
-    }
-
     @OnClick(R.id.fab)
     public void onFabClick(View view) {
         if (getSupportMediaController() != null) {
@@ -74,8 +66,6 @@ public class QueueActivity extends MediaBrowserActivity {
         setContentView(R.layout.activity_queue);
 
         EventBusUtils.safeRegister(playlistAdapter.getEventBus(), this);
-
-        getMediaBrowser().subscribe(GpmdpMediaProvider.MEDIA_ID_ROOT_QUEUE, mediaBrowserSubscriptionCallback);
     }
 
     @Override
@@ -83,8 +73,6 @@ public class QueueActivity extends MediaBrowserActivity {
         super.onDestroy();
 
         EventBusUtils.safeUnregister(playlistAdapter.getEventBus(), this);
-
-        getMediaBrowser().unsubscribe(GpmdpMediaProvider.MEDIA_ID_ROOT_QUEUE, mediaBrowserSubscriptionCallback);
     }
 
     @Override
@@ -142,26 +130,12 @@ public class QueueActivity extends MediaBrowserActivity {
             }
 
             if (currentPlaybackState != state.getState()) {
-                switch (state.getState()) {
-                    case PlaybackStateCompat.STATE_PAUSED:
-                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
-                        break;
-                    case PlaybackStateCompat.STATE_STOPPED:
-                    case PlaybackStateCompat.STATE_NONE:
-                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_STOP);
-                        break;
-                    case PlaybackStateCompat.STATE_PLAYING:
-                        if (currentPlaybackState == PlaybackStateCompat.STATE_PAUSED) {
-                            musicFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
-                        } else {
-                            musicFab.changeMode(FloatingMusicActionButton.Mode.STOP_TO_PLAY);
-                        }
-                        break;
-                    case PlaybackStateCompat.STATE_ERROR:
-                        break;
-                    default:
-                        break;
+                if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
+                    musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+                } else if (state.getState() == PlaybackStateCompat.STATE_PAUSED) {
+                    musicFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
                 }
+
                 musicFab.playAnimation();
                 currentPlaybackState = state.getState();
             }
@@ -198,13 +172,6 @@ public class QueueActivity extends MediaBrowserActivity {
             super.onQueueTitleChanged(title);
 
             playlistNameTextView.setText(title);
-        }
-    };
-
-    private MediaBrowserCompat.SubscriptionCallback mediaBrowserSubscriptionCallback = new MediaBrowserCompat.SubscriptionCallback() {
-        @Override
-        public void onChildrenLoaded(@NonNull String parentId, List<MediaBrowserCompat.MediaItem> children) {
-
         }
     };
 

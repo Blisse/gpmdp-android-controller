@@ -14,18 +14,9 @@
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowSharedElementsUseOverlay">false</item>
-        <item name="android:windowExitTransition">@transition/queue_content_exit_transition</item>
-        <item name="android:windowReenterTransition">@transition/queue_content_reenter_transition</item>
-        <item name="android:windowSharedElementExitTransition">@transition/queue_shared_element_exit_transition</item>
-        <item name="android:windowSharedElementReenterTransition">@transition/queue_shared_element_reenter_transition</item>
-
     </style>
 
     <style name="AppTheme.Play" parent="AppTheme">
-        <item name="android:windowSharedElementEnterTransition">@transition/play_shared_element_enter_transition</item>
-        <item name="android:windowSharedElementReturnTransition">@transition/play_shared_element_return_transition</item>
-        <item name="android:windowExitTransition">@transition/play_content_return_transition</item>
-        <item name="android:windowReenterTransition">@transition/play_content_enter_transition</item>
     </style>
 
 </resources>

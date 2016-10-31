@@ -1,6 +1,8 @@
 package ai.victorl.gpmdpcontroller.data.media;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -10,8 +12,12 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -216,6 +222,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, track.title)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, String.format(Locale.CANADA, "%s - %s", track.artist, track.album))
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, track.albumArt)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, track.duration.toString()) // hack to get duration on queue item
                 .build();
     }
 
@@ -247,6 +254,28 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
         }
         return RatingCompat.newStarRating(RatingCompat.RATING_5_STARS, rating);
     }
+
+    private Target mediaAlbumArtTarget = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            mediaMetadataBuilder
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bitmap)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
+
+            mediaEventBus.post(mediaMetadataBuilder.build());
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
+    };
 
     @Subscribe
     public void onEvent(PlaybackState playbackState) {
@@ -295,7 +324,6 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     @Subscribe
     public void onEvent(QueueResponse queueResponse) {
         queue.clear();
-        queueTracks.clear();
 
         for (Track track : queueResponse.queue) {
             String mediaId = MediaIdHelper.createMediaId(track.id, MEDIA_ID_ROOT_QUEUE);
@@ -304,7 +332,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
             queue.add(item);
         }
 
-        queueTracks.addAll(queueResponse.queue);
+        queueTracks = new ArrayList<>(queueResponse.queue);
 
         mediaEventBus.post(new QueueEvent(context.getResources().getString(R.string.controller_queue_name), queue));
     }
@@ -344,7 +372,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
         mediaEventBus.post(playbackStateBuilder.build());
     }
 
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Track track) {
         String trackSubtitle = String.format(Locale.CANADA, "%s - %s", track.artist, track.album);
         String mediaId = MediaIdHelper.createMediaId(track.id);
@@ -366,6 +394,8 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
         MediaDescriptionCompat mediaDescription = mediaMetadata.getDescription();
         mediaEventBus.post(mediaMetadata);
 
+        Picasso.with(context).load(track.albumArt).into(mediaAlbumArtTarget);
+
         for (MediaSessionCompat.QueueItem queueItem : queue) {
             MediaDescriptionCompat description = queueItem.getDescription();
             if (TextUtils.equals(description.getTitle(), mediaDescription.getTitle())
@@ -375,6 +405,8 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
             }
         }
 
+        playbackStateBuilder.setState(getPlaybackState(), 0, 1.0f);
+        mediaEventBus.post(playbackStateBuilder.build());
     }
 
     @Subscribe

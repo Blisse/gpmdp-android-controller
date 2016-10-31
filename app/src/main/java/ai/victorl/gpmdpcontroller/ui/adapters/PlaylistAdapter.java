@@ -84,7 +84,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
                 .into(holder.coverImageView);
         holder.titleTextView.setText(description.getTitle());
         holder.artistTextView.setText(description.getSubtitle());
-        holder.durationTextView.setText(DateUtils.formatElapsedTime(0));
+        holder.durationTextView.setText(DateUtils.formatElapsedTime(Long.valueOf(new StringBuilder(description.getDescription()).toString())));
 
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override

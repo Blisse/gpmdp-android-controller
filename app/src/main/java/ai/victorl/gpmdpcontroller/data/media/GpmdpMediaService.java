@@ -33,6 +33,9 @@ import ai.victorl.gpmdpcontroller.injection.scopes.ApplicationScope;
 import ai.victorl.gpmdpcontroller.ui.activities.ConnectActivity;
 import ai.victorl.gpmdpcontroller.utils.EventBusUtils;
 
+import static android.support.v4.media.session.MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS;
+import static android.support.v4.media.session.MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS;
+
 public class GpmdpMediaService extends MediaBrowserServiceCompat {
     @Inject @ApplicationScope Context context;
     @Inject GpmdpMediaProvider gpmdpMediaProvider;
@@ -48,7 +51,7 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
         mediaSession = new MediaSessionCompat(context, GpmdpMediaService.class.getSimpleName());
         setSessionToken(mediaSession.getSessionToken());
         mediaSession.setCallback(mediaSessionCallback);
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setFlags(FLAG_HANDLES_MEDIA_BUTTONS | FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setRatingType(RatingCompat.RATING_THUMB_UP_DOWN);
 
         Intent intent = new Intent(context, ConnectActivity.class);
@@ -70,7 +73,9 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
     public void onDestroy() {
         super.onDestroy();
 
-        mediaNotification.stop();
+        if (mediaNotification != null) {
+            mediaNotification.stop();
+        }
 
         mediaSession.setActive(false);
         mediaSession.release();

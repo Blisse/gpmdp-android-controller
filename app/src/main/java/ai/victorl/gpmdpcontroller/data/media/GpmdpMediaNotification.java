@@ -1,11 +1,12 @@
 package ai.victorl.gpmdpcontroller.data.media;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -13,13 +14,18 @@ import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
+import java.util.ArrayList;
 
 import ai.victorl.gpmdpcontroller.R;
 
 public class GpmdpMediaNotification extends BroadcastReceiver {
-    private static final int NOTIFICATION_ID = 412;
+    private static final int GPMDPCONTROLLER_NOTIFICATION_ID = 415;
+    private static final int GPMDPCONTROLLER_BROADCAST_INTENT_ID = 101;
 
     private static final String ACTION_PAUSE = "ai.victorl.gpmdpcontroller.ACTION_PAUSE";
     private static final String ACTION_PLAY = "ai.victorl.gpmdpcontroller.ACTION_PLAY";
@@ -29,16 +35,15 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
 
     private final MediaBrowserServiceCompat mediaBrowserService;
     private final NotificationManagerCompat notificationManager;
+    private final NotificationCompat.Builder notificationBuilder;
 
     private final PendingIntent pauseSongIntent;
     private final PendingIntent playSongIntent;
     private final PendingIntent previousSongIntent;
     private final PendingIntent nextSongIntent;
-    private final PendingIntent stopBroadcastIntent;
 
-    private MediaSessionCompat.Token sessionToken;
+    private final PendingIntent stopBroadcastIntent;
     private MediaControllerCompat mediaController;
-    private MediaControllerCompat.TransportControls transportControls;
 
     private boolean started = false;
 
@@ -46,11 +51,10 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
         this.mediaBrowserService = mediaBrowserService;
 
         notificationManager = NotificationManagerCompat.from(mediaBrowserService);
+        notificationBuilder = new NotificationCompat.Builder(mediaBrowserService);
 
-        sessionToken = mediaBrowserService.getSessionToken();
-        if (sessionToken != null) {
-            mediaController = new MediaControllerCompat(mediaBrowserService, sessionToken);
-            transportControls = mediaController.getTransportControls();
+        if (mediaBrowserService.getSessionToken() != null) {
+            mediaController = new MediaControllerCompat(mediaBrowserService, mediaBrowserService.getSessionToken());
         }
 
         pauseSongIntent = getBroadcastIntent(new Intent(ACTION_PAUSE));
@@ -65,19 +69,29 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
         final String action = intent.getAction();
         switch (action) {
             case ACTION_NEXT:
-                transportControls.skipToNext();
+                if (mediaController != null) {
+                    mediaController.getTransportControls().skipToNext();
+                }
                 break;
             case ACTION_PAUSE:
-                transportControls.pause();
+                if (mediaController != null) {
+                    mediaController.getTransportControls().pause();
+                }
                 break;
             case ACTION_PLAY:
-                transportControls.play();
+                if (mediaController != null) {
+                    mediaController.getTransportControls().play();
+                }
                 break;
             case ACTION_PREVIOUS:
-                transportControls.skipToPrevious();
+                if (mediaController != null) {
+                    mediaController.getTransportControls().skipToPrevious();
+                }
                 break;
             case ACTION_STOP:
-                transportControls.stop();
+                if (mediaController != null) {
+                    mediaController.getTransportControls().stop();
+                }
                 break;
             default:
                 break;
@@ -86,7 +100,7 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
 
     private PendingIntent getBroadcastIntent(Intent intent) {
         intent.setPackage(mediaBrowserService.getPackageName());
-        return PendingIntent.getBroadcast(mediaBrowserService, 100, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        return PendingIntent.getBroadcast(mediaBrowserService, GPMDPCONTROLLER_BROADCAST_INTENT_ID, intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
     public void start() {
@@ -94,54 +108,6 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
 
         if (!started) {
             started = true;
-            mediaController.registerCallback(mediaControllerCallback);
-
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(mediaBrowserService);
-            PlaybackStateCompat playbackState = mediaController.getPlaybackState();
-
-            if (playbackState != null) {
-                if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
-                    notificationBuilder.addAction(R.drawable.ic_skip_previous_white_24dp,
-                            "Previous", previousSongIntent);
-                }
-
-                if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                    notificationBuilder.addAction(R.drawable.ic_pause_white_24dp, "Pause", pauseSongIntent);
-                } else {
-                    notificationBuilder.addAction(R.drawable.ic_play_arrow_white_24dp, "Play", playSongIntent);
-                }
-
-                if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
-                    notificationBuilder.addAction(R.drawable.ic_skip_next_white_24dp,
-                            "Next", nextSongIntent);
-                }
-
-                MediaDescriptionCompat description = mediaController.getMetadata().getDescription();
-
-                if (description != null) {
-                    notificationBuilder
-                            .setStyle(new android.support.v7.app.NotificationCompat.MediaStyle()
-                                    .setShowActionsInCompactView(new int[]{1})
-                                    .setMediaSession(sessionToken))
-                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                            .setContentTitle(description.getTitle())
-                            .setContentText(description.getSubtitle());
-                }
-
-                if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                    notificationBuilder.setWhen(playbackState.getPosition())
-                            .setShowWhen(true)
-                            .setUsesChronometer(true)
-                            .setOngoing(true);
-                } else {
-                    notificationBuilder.setWhen(0)
-                            .setShowWhen(false)
-                            .setUsesChronometer(false)
-                            .setOngoing(false);
-                }
-            }
-
-            Notification notification = notificationBuilder.build();
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(ACTION_PREVIOUS);
@@ -149,19 +115,128 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
             filter.addAction(ACTION_PLAY);
             filter.addAction(ACTION_NEXT);
             filter.addAction(ACTION_STOP);
-
             mediaBrowserService.registerReceiver(this, filter);
-            mediaBrowserService.startForeground(NOTIFICATION_ID, notification);
+
+            initializeNotification();
+            mediaBrowserService.startForeground(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());
+            mediaController.registerCallback(mediaControllerCallback);
         }
     }
 
     public void stop() {
+        if (started) {
+            started = false;
 
+            mediaController.unregisterCallback(mediaControllerCallback);
+            notificationManager.cancel(GPMDPCONTROLLER_NOTIFICATION_ID);
+        }
     }
+
+    public void initializeNotification() {
+        notificationBuilder
+                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                .setColor(mediaBrowserService.getColor(R.color.pacifica))
+                .setOngoing(true)
+                .setShowWhen(false)
+                .setSmallIcon(R.drawable.ic_play_arrow_white_24dp)
+                .setStyle(new android.support.v7.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaBrowserService.getSessionToken()))
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+    }
+
+    private void updateNotification(Bitmap bitmap) {
+        notificationBuilder.setLargeIcon(bitmap);
+
+        notificationManager.notify(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void updateNotification(PlaybackStateCompat playbackState) {
+        ArrayList<NotificationCompat.Action> actions = new ArrayList<>();
+
+        if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
+            actions.add(new NotificationCompat.Action.Builder(
+                    R.drawable.ic_skip_previous_white_24dp,
+                    mediaBrowserService.getString(R.string.notification_action_previous),
+                    previousSongIntent).build());
+        }
+
+        if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+            notificationBuilder.setSmallIcon(R.drawable.ic_play_arrow_white_24dp);
+            actions.add(new NotificationCompat.Action.Builder(
+                    R.drawable.ic_pause_white_24dp,
+                    mediaBrowserService.getString(R.string.notification_action_pause),
+                    pauseSongIntent).build());
+        } else {
+            notificationBuilder.setSmallIcon(R.drawable.ic_pause_white_24dp);
+            actions.add(new NotificationCompat.Action.Builder(
+                    R.drawable.ic_play_arrow_white_24dp,
+                    mediaBrowserService.getString(R.string.notification_action_play),
+                    playSongIntent).build());
+        }
+
+        if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
+            actions.add(new NotificationCompat.Action.Builder(
+                    R.drawable.ic_skip_next_white_24dp,
+                    mediaBrowserService.getString(R.string.notification_action_next),
+                    nextSongIntent).build());
+        }
+
+        notificationBuilder.mActions = actions;
+
+        if (mediaController != null && mediaController.getMetadata() != null) {
+            int max = Long.valueOf(mediaController.getMetadata().getLong(MediaMetadataCompat.METADATA_KEY_DURATION)).intValue();
+            int progress = Long.valueOf(playbackState.getPosition()).intValue();
+            notificationBuilder.setProgress(max, progress, false);
+        }
+
+        notificationManager.notify(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void updateNotification(MediaMetadataCompat metadata) {
+        MediaDescriptionCompat description = metadata.getDescription();
+
+        notificationBuilder
+                .setProgress(Long.valueOf(metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)).intValue(), 0, false)
+                .setContentTitle(description.getTitle())
+                .setContentText(description.getSubtitle());
+
+        if (description.getIconBitmap() != null) {
+            notificationBuilder.setLargeIcon(description.getIconBitmap());
+        } else {
+            Picasso.with(mediaBrowserService).load(description.getIconUri()).into(mediaIconTarget);
+        }
+
+        notificationManager.notify(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private Target mediaIconTarget = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            updateNotification(bitmap);
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
+    };
 
     private MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
+            updateNotification(metadata);
+        }
+
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            if ((System.currentTimeMillis() - state.getLastPositionUpdateTime()) > 2000) {
+                updateNotification(state);
+            }
         }
     };
 }

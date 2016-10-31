@@ -105,11 +105,6 @@ public class PlayActivity extends MediaBrowserActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     void onPreInflate() {
         getActivityComponent().inject(this);
     }
@@ -168,13 +163,7 @@ public class PlayActivity extends MediaBrowserActivity {
 
     private boolean navigateToQueue() {
         musicCoverView.stop();
-        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                new Pair<>((View) musicCoverView, ViewCompat.getTransitionName(musicCoverView)),
-                new Pair<>((View) titleView, ViewCompat.getTransitionName(titleView)),
-                new Pair<>((View) timeTextView, ViewCompat.getTransitionName(timeTextView)),
-                new Pair<>((View) durationTextView, ViewCompat.getTransitionName(durationTextView)),
-                new Pair<>((View) progressView, ViewCompat.getTransitionName(progressView)));
-        return Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), options.toBundle());
+        return Intents.maybeStartActivity(this, new Intent(this, QueueActivity.class), null);
     }
 
     private void animateMusicCover(int playbackState) {
@@ -195,26 +184,12 @@ public class PlayActivity extends MediaBrowserActivity {
             progressView.setProgress(Long.valueOf(position).intValue());
 
             if (currentPlaybackState != state.getState()) {
-                switch (state.getState()) {
-                    case PlaybackStateCompat.STATE_PAUSED:
-                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
-                        break;
-                    case PlaybackStateCompat.STATE_STOPPED:
-                    case PlaybackStateCompat.STATE_NONE:
-                        musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_STOP);
-                        break;
-                    case PlaybackStateCompat.STATE_PLAYING:
-                        if (currentPlaybackState == PlaybackStateCompat.STATE_PAUSED) {
-                            musicFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
-                        } else {
-                            musicFab.changeMode(FloatingMusicActionButton.Mode.STOP_TO_PLAY);
-                        }
-                        break;
-                    case PlaybackStateCompat.STATE_ERROR:
-                        break;
-                    default:
-                        break;
+                if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
+                    musicFab.changeMode(FloatingMusicActionButton.Mode.PLAY_TO_PAUSE);
+                } else if (state.getState() == PlaybackStateCompat.STATE_PAUSED) {
+                    musicFab.changeMode(FloatingMusicActionButton.Mode.PAUSE_TO_PLAY);
                 }
+
                 musicFab.playAnimation();
 
                 currentPlaybackState = state.getState();
