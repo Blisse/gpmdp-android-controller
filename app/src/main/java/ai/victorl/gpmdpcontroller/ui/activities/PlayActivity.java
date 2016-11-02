@@ -8,6 +8,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -248,15 +249,18 @@ public class PlayActivity extends MediaBrowserActivity {
             trackTitleTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE));
             trackArtistTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE));
 
-            picasso.load(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))
-                    .fit()
-                    .centerCrop()
-                    .into(musicCoverView);
+            String displayIconUrl = metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI);
+            if (!TextUtils.isEmpty(displayIconUrl)) {
+                picasso.load(displayIconUrl)
+                        .fit()
+                        .centerCrop()
+                        .into(musicCoverView);
+            }
 
-            long duration = metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+            Long duration = Long.valueOf(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION));
             timeTextView.setText(DateUtils.formatElapsedTime(0));
             durationTextView.setText(DateUtils.formatElapsedTime(duration));
-            progressView.setMax(Long.valueOf(duration).intValue());
+            progressView.setMax(duration.intValue());
         }
     };
 

@@ -8,13 +8,14 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.RemoteException;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.NotificationCompat;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -22,6 +23,8 @@ import com.squareup.picasso.Target;
 import java.util.ArrayList;
 
 import ai.victorl.gpmdpcontroller.R;
+import ai.victorl.gpmdpcontroller.ui.activities.ConnectActivity;
+import ai.victorl.gpmdpcontroller.ui.views.Intents;
 
 public class GpmdpMediaNotification extends BroadcastReceiver {
     private static final int GPMDPCONTROLLER_NOTIFICATION_ID = 415;
@@ -31,7 +34,7 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
     private static final String ACTION_PLAY = "ai.victorl.gpmdpcontroller.ACTION_PLAY";
     private static final String ACTION_PREVIOUS = "ai.victorl.gpmdpcontroller.ACTION_PREVIOUS";
     private static final String ACTION_NEXT = "ai.victorl.gpmdpcontroller.ACTION_NEXT";
-    private static final String ACTION_STOP = "ai.victorl.gpmdpcontroller.ACTION_STOP";
+    private static final String ACTION_LAUNCH = "ai.victorl.gpmdpcontroller.ACTION_LAUNCH";
 
     private final MediaBrowserServiceCompat mediaBrowserService;
     private final NotificationManagerCompat notificationManager;
@@ -41,27 +44,29 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
     private final PendingIntent playSongIntent;
     private final PendingIntent previousSongIntent;
     private final PendingIntent nextSongIntent;
+    private final PendingIntent launchIntent;
 
-    private final PendingIntent stopBroadcastIntent;
+    private MediaSessionCompat.Token mediaSessionToken;
     private MediaControllerCompat mediaController;
 
     private boolean started = false;
 
-    public GpmdpMediaNotification(MediaBrowserServiceCompat mediaBrowserService) throws RemoteException {
+    public GpmdpMediaNotification(MediaBrowserServiceCompat mediaBrowserService, MediaSessionCompat.Token mediaSessionToken) throws RemoteException {
         this.mediaBrowserService = mediaBrowserService;
+        this.mediaSessionToken = mediaSessionToken;
 
         notificationManager = NotificationManagerCompat.from(mediaBrowserService);
         notificationBuilder = new NotificationCompat.Builder(mediaBrowserService);
 
         if (mediaBrowserService.getSessionToken() != null) {
-            mediaController = new MediaControllerCompat(mediaBrowserService, mediaBrowserService.getSessionToken());
+            mediaController = new MediaControllerCompat(mediaBrowserService, mediaSessionToken);
         }
 
         pauseSongIntent = getBroadcastIntent(new Intent(ACTION_PAUSE));
         playSongIntent = getBroadcastIntent(new Intent(ACTION_PLAY));
         previousSongIntent = getBroadcastIntent(new Intent(ACTION_PREVIOUS));
         nextSongIntent = getBroadcastIntent(new Intent(ACTION_NEXT));
-        stopBroadcastIntent = getBroadcastIntent(new Intent(ACTION_STOP));
+        launchIntent = getBroadcastIntent(new Intent(ACTION_LAUNCH));
     }
 
     @Override
@@ -88,10 +93,8 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
                     mediaController.getTransportControls().skipToPrevious();
                 }
                 break;
-            case ACTION_STOP:
-                if (mediaController != null) {
-                    mediaController.getTransportControls().stop();
-                }
+            case ACTION_LAUNCH:
+                Intents.maybeStartActivity(mediaBrowserService, new Intent(mediaBrowserService, ConnectActivity.class));
                 break;
             default:
                 break;
@@ -114,10 +117,20 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
             filter.addAction(ACTION_PAUSE);
             filter.addAction(ACTION_PLAY);
             filter.addAction(ACTION_NEXT);
-            filter.addAction(ACTION_STOP);
+            filter.addAction(ACTION_LAUNCH);
             mediaBrowserService.registerReceiver(this, filter);
 
-            initializeNotification();
+            notificationBuilder
+                    .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                    .setColor(mediaBrowserService.getColor(R.color.pacifica))
+                    .setOngoing(true)
+                    .setContentIntent(launchIntent)
+                    .setShowWhen(false)
+                    .setSmallIcon(R.drawable.ic_play_arrow_white_24dp)
+                    .setStyle(new NotificationCompat.MediaStyle()
+                            .setMediaSession(mediaBrowserService.getSessionToken()))
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+
             mediaBrowserService.startForeground(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());
             mediaController.registerCallback(mediaControllerCallback);
         }
@@ -130,18 +143,6 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
             mediaController.unregisterCallback(mediaControllerCallback);
             notificationManager.cancel(GPMDPCONTROLLER_NOTIFICATION_ID);
         }
-    }
-
-    public void initializeNotification() {
-        notificationBuilder
-                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-                .setColor(mediaBrowserService.getColor(R.color.pacifica))
-                .setOngoing(true)
-                .setShowWhen(false)
-                .setSmallIcon(R.drawable.ic_play_arrow_white_24dp)
-                .setStyle(new android.support.v7.app.NotificationCompat.MediaStyle()
-                        .setMediaSession(mediaBrowserService.getSessionToken()))
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
     }
 
     private void updateNotification(Bitmap bitmap) {
@@ -181,6 +182,10 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
                     nextSongIntent).build());
         }
 
+        notificationBuilder.setStyle(new NotificationCompat.MediaStyle()
+                .setMediaSession(mediaBrowserService.getSessionToken())
+                .setShowActionsInCompactView(actions.size() > 1 ? new int[]{ 1 } : new int[]{}));
+
         notificationBuilder.mActions = actions;
 
         if (mediaController != null && mediaController.getMetadata() != null) {
@@ -203,7 +208,9 @@ public class GpmdpMediaNotification extends BroadcastReceiver {
         if (description.getIconBitmap() != null) {
             notificationBuilder.setLargeIcon(description.getIconBitmap());
         } else {
-            Picasso.with(mediaBrowserService).load(description.getIconUri()).into(mediaIconTarget);
+            Picasso.with(mediaBrowserService)
+                    .load(description.getIconUri())
+                    .into(mediaIconTarget);
         }
 
         notificationManager.notify(GPMDPCONTROLLER_NOTIFICATION_ID, notificationBuilder.build());

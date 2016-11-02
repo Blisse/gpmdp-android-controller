@@ -10,7 +10,9 @@ import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -77,15 +79,26 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     private PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
     private MediaMetadataCompat.Builder mediaMetadataBuilder = new MediaMetadataCompat.Builder();
 
+    private DisplayMetrics displayMetrics = new DisplayMetrics();
+
     public GpmdpMediaManager(Context context, GpmdpController gpmdpController) {
         this.context = context;
         this.gpmdpController = gpmdpController;
 
-        playbackStateBuilder.addCustomAction(new RefreshAction(context).getAction());
-        playbackStateBuilder.addCustomAction(new RepeatAction(context).getAction());
-        playbackStateBuilder.addCustomAction(new ShuffleAction(context).getAction());
-        playbackStateBuilder.addCustomAction(new VolumeUpAction(context).getAction());
-        playbackStateBuilder.addCustomAction(new VolumeDownAction(context).getAction());
+        playbackStateBuilder
+                .addCustomAction(new RefreshAction(context).getAction())
+                .addCustomAction(new RepeatAction(context).getAction())
+                .addCustomAction(new ShuffleAction(context).getAction())
+                .addCustomAction(new VolumeUpAction(context).getAction())
+                .addCustomAction(new VolumeDownAction(context).getAction());
+
+        mediaMetadataBuilder
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "0");
+
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(displayMetrics);
     }
 
     @Override
@@ -252,6 +265,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
 
     private long getActions(PlaybackState playbackState) {
         long actions = PlaybackStateCompat.ACTION_PLAY |
+                PlaybackStateCompat.ACTION_PLAY_PAUSE |
                 PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
                 PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH |
                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
@@ -282,10 +296,7 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
     private Target mediaAlbumArtTarget = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            mediaMetadataBuilder
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bitmap)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
+            mediaMetadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
 
             mediaEventBus.post(mediaMetadataBuilder.build());
         }
@@ -415,7 +426,12 @@ public class GpmdpMediaManager implements GpmdpMediaProvider {
         MediaDescriptionCompat mediaDescription = mediaMetadata.getDescription();
         mediaEventBus.post(mediaMetadata);
 
-        Picasso.with(context).load(track.albumArt).into(mediaAlbumArtTarget);
+        Picasso
+                .with(context)
+                .load(track.albumArt)
+                .centerCrop()
+                .resize(displayMetrics.widthPixels, displayMetrics.heightPixels)
+                .into(mediaAlbumArtTarget);
 
         for (MediaSessionCompat.QueueItem queueItem : queue) {
             MediaDescriptionCompat description = queueItem.getDescription();

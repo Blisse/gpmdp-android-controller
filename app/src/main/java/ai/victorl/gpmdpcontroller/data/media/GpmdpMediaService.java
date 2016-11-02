@@ -56,12 +56,26 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
         mediaSession.setFlags(FLAG_HANDLES_MEDIA_BUTTONS | FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setRatingType(RatingCompat.RATING_THUMB_UP_DOWN);
 
+        MediaMetadataCompat mediaMetadata = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "0")
+                .build();
+        mediaSession.setMetadata(mediaMetadata);
+
+        PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                .build();
+        mediaSession.setPlaybackState(playbackState);
+        mediaSession.setActive(true);
+
         Intent intent = new Intent(context, ConnectActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 99, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mediaSession.setSessionActivity(pendingIntent);
 
         try {
-            mediaNotification = new GpmdpMediaNotification(this);
+            mediaNotification = new GpmdpMediaNotification(this, mediaSession.getSessionToken());
             mediaNotification.start();
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -177,6 +191,7 @@ public class GpmdpMediaService extends MediaBrowserServiceCompat {
         } else if (event.state == WebSocketState.CLOSED) {
             mediaSession.setActive(false);
             PlaybackStateCompat state = new PlaybackStateCompat.Builder()
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
                     .setErrorMessage("WebSocket connection closed.")
                     .build();
             mediaSession.setPlaybackState(state);
